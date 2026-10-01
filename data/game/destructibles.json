@@ -1,0 +1,152 @@
+{
+  "crate": {
+    "enabled": true,
+    "asset": "images/objects/destructibles/crate.png",
+    "frame_size": [
+      32,
+      32
+    ],
+    "hits_to_break": 3,
+    "damaged_after_hits": 2,
+    "weight": 1,
+    "body_hit_interval": 0.3,
+    "coins": 0,
+    "background_colors": [
+      [
+        90,
+        90,
+        90
+      ],
+      [
+        59,
+        90,
+        62
+      ]
+    ]
+  },
+  "barrel": {
+    "enabled": true,
+    "asset": "images/objects/destructibles/barrel.png",
+    "frame_size": [
+      32,
+      32
+    ],
+    "hits_to_break": 3,
+    "damaged_after_hits": 2,
+    "weight": 1,
+    "body_hit_interval": 0.3,
+    "coins": 0,
+    "background_colors": [
+      [
+        90,
+        90,
+        90
+      ],
+      [
+        59,
+        90,
+        62
+      ]
+    ]
+  },
+  "open_box": {
+    "enabled": true,
+    "asset": "images/objects/destructibles/open_box.png",
+    "frame_size": [
+      32,
+      32
+    ],
+    "hits_to_break": 3,
+    "damaged_after_hits": 2,
+    "weight": 1,
+    "body_hit_interval": 0.3,
+    "coins": 0,
+    "background_colors": [
+      [
+        90,
+        90,
+        90
+      ],
+      [
+        59,
+        90,
+        62
+      ]
+    ]
+  },
+  "stool": {
+    "enabled": true,
+    "asset": "images/objects/destructibles/stool.png",
+    "frame_size": [
+      32,
+      32
+    ],
+    "hits_to_break": 3,
+    "damaged_after_hits": 2,
+    "weight": 1,
+    "body_hit_interval": 0.3,
+    "coins": 0,
+    "background_colors": [
+      [
+        90,
+        90,
+        90
+      ],
+      [
+        59,
+        90,
+        62
+      ]
+    ]
+  },
+  "skull": {
+    "enabled": true,
+    "asset": "images/objects/destructibles/skull.png",
+    "frame_size": [
+      32,
+      32
+    ],
+    "hits_to_break": 3,
+    "damaged_after_hits": 2,
+    "weight": 1,
+    "body_hit_interval": 0.3,
+    "coins": 0,
+    "background_colors": [
+      [
+        90,
+        90,
+        90
+      ],
+      [
+        59,
+        90,
+        62
+      ]
+    ]
+  },
+  "bones": {
+    "enabled": true,
+    "asset": "images/objects/destructibles/bones.png",
+    "frame_size": [
+      32,
+      32
+    ],
+    "hits_to_break": 3,
+    "damaged_after_hits": 2,
+    "weight": 1,
+    "body_hit_interval": 0.3,
+    "coins": 0,
+    "background_colors": [
+      [
+        90,
+        90,
+        90
+      ],
+      [
+        59,
+        90,
+        62
+      ]
+    ]
+  }
+}

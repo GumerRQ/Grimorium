@@ -1,3 +1,5 @@
+from game.systems.impacts import Impact, apply_impact
+from game.systems.collision_shapes import circle_overlaps_entity
 import math
 import random
 import pygame
@@ -46,12 +48,8 @@ class ToxicOverload:
             if enemy.is_dead() or enemy in self.fed_enemies:
                 continue
 
-            distance = math.hypot(
-                enemy.x - self.player.x,
-                enemy.y - self.player.y,
-            )
 
-            if distance <= self.radius + enemy.radius:
+            if circle_overlaps_entity(self.player.x, self.player.y, self.radius, enemy):
                 max_charge = (
                     self.charge_decay_factor
                     ** len(self.fed_enemies)
@@ -66,13 +64,9 @@ class ToxicOverload:
             if enemy.is_dead():
                 continue
 
-            distance = math.hypot(
-                enemy.x - self.player.x,
-                enemy.y - self.player.y,
-            )
 
-            if distance <= self.radius + enemy.radius:
-                enemy.take_damage(self.tick_damage)
+            if circle_overlaps_entity(self.player.x, self.player.y, self.radius, enemy):
+                apply_impact(enemy, Impact(self.tick_damage, kind='effect', source=self))
 
     def draw(self, surface):
         if self.finished:

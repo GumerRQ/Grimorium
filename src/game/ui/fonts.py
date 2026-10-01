@@ -35,14 +35,18 @@ class PixelGameFont:
         for line in lines:
             x = 0
             for char in line:
-                glyph = self._get_glyph(char, color)
+                glyph = None if char == "\u2009" else self._get_glyph(char, color)
                 if glyph is not None:
                     surface.blit(glyph, (x, y))
-                char_width = CHAR_WIDTHS.get(char, CHAR_W)
-                x += (char_width + 1) * self.scale
+                x += self._advance(char)
             y += self.line_height
 
         return surface
+
+    def _advance(self, char):
+        if char == "\u2009":
+            return max(1, ((CHAR_WIDTHS.get(" ", CHAR_W) + 1) * self.scale) // 2)
+        return (CHAR_WIDTHS.get(char, CHAR_W) + 1) * self.scale
 
     def _line_width(self, line):
         if not line:
@@ -50,8 +54,7 @@ class PixelGameFont:
 
         width = 0
         for char in line:
-            char_width = CHAR_WIDTHS.get(char, CHAR_W)
-            width += (char_width + 1) * self.scale
+            width += self._advance(char)
 
         return width - self.scale
 

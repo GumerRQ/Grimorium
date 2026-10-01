@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "result": "in_progress",
+  "seed": "608791924",
+  "debug_used": false,
+  "roof_removed": false,
+  "floors": [
+    {
+      "floor": 1,
+      "type": "normal",
+      "layout": [
+        "             ",
+        "         Dd  ",
+        "E............",
+        "OOOOOOOOOOOO.",
+        "OOOOOOOOOOOO.",
+        "OOOOOOOOOOOO.",
+        "OOOOOOOOOOOO.",
+        "OOOOOOOOOOOO.",
+        "OOOOOOOOOOOO.",
+        "OOOOOOOOO.P..",
+        "         Aa  "
+      ],
+      "completed": true
+    }
+  ]
+}

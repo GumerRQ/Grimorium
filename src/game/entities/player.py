@@ -7,6 +7,7 @@ from game import config
 from game.entities.entity import LivingEntity
 from game.systems.shot_builder import build_player_shot
 from game.visuals.animated_visual import AnimatedVisual
+from game.ui.health_hearts import draw_health_hearts
 
 
 class Player(LivingEntity):
@@ -37,7 +38,7 @@ class Player(LivingEntity):
         self.books_purchased = 0
         self.purchased_books = set()
 
-        self.base_bullet_elements = ["ice"]
+        self.base_bullet_elements = []
         #self.extra_bullet_element = {"poison":0.2, "electric":0.2, "ice": 0.2}
         self.extra_bullet_element = {}
         self.power_element_order = []
@@ -253,7 +254,7 @@ class Player(LivingEntity):
         self.visual.update(dt)
 
     def take_damage(self, damage):
-        if self.invulnerability_timer > 0:
+        if getattr(self, 'debug_invulnerable', False) or self.invulnerability_timer > 0:
             return
 
         self.health = max(0, self.health - damage)
@@ -320,36 +321,13 @@ class Player(LivingEntity):
 
 
     
-    def draw_player_health(self, surface, font):
+    def draw_player_health(self, surface, font, layout=None):
+        if layout is not None and not layout.is_visible("health_bar"):
+            return
+        rect = layout.rect("health_bar") if layout is not None else (25, 15, 120, 16)
+        draw_health_hearts(surface, self.health, self.max_health, rect)
 
-        bar_width = 120
-        bar_height = 16
-
-        x = 25
-        y = 15
-
-        health_ratio = self.health / self.max_health
-        health_ratio = max(0, min(1, health_ratio))
-
-        fill_width = int(bar_width * health_ratio)
-
-        background_rect = pygame.Rect(x, y, bar_width, bar_height)
-        fill_rect = pygame.Rect(x, y, fill_width, bar_height)
-
-        pygame.draw.rect(surface, (50, 50, 50), background_rect)
-        pygame.draw.rect(surface, (200, 30, 30), fill_rect)
-        pygame.draw.rect(surface, (255, 255, 255), background_rect, 2)
-
-        text = font.render(
-            f"{int(self.health)} / {self.max_health}",
-            True,
-            (255, 255, 255),
-        )
-
-        text_rect = text.get_rect(center=background_rect.center)
-        surface.blit(text, text_rect)
-        
-    def draw_player_stats(self, surface, font, stat_positions):
+    def draw_player_stats(self, surface, font, stat_positions, layout=None):
         stat_lines = {
             "coins": f"{self.coins}",
             "health": f"{self.health}",
@@ -362,6 +340,10 @@ class Player(LivingEntity):
         }
 
         for stat_name, text_value in stat_lines.items():
+            if layout is not None:
+                if stat_name in layout.items:
+                    layout.draw_text(surface, font, text_value, stat_name, config.HUD_COLOR)
+                continue
             text = font.render(text_value, True, config.HUD_COLOR)
             cx, cy = stat_positions[stat_name]
 

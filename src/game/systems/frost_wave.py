@@ -1,3 +1,4 @@
+from game.systems.collision_shapes import circle_overlaps_entity
 import math
 
 import pygame
@@ -47,12 +48,8 @@ class FrostWave:
             ):
                 continue
 
-            distance = math.hypot(
-                enemy.x - self.x,
-                enemy.y - self.y,
-            )
 
-            if distance > self.current_radius + enemy.radius:
+            if not circle_overlaps_entity(self.x, self.y, self.current_radius, enemy):
                 continue
 
             ice = enemy.status_effects["ice"]

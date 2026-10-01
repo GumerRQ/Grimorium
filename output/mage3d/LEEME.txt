@@ -1,0 +1,28 @@
+GRIMORIUM - MAGO 3D SUAVE
+
+mage.glb: modelo 3D principal, con colores, materiales y normales suaves.
+mage.obj + mage.mtl: formato alternativo; mantener ambos juntos.
+mage-viewer.html: abrir con doble clic en un navegador. Funciona sin internet.
+
+El visor permite girar la cámara, ampliar, desplazar y rotar/colocar el modelo
+en los tres ejes. Restablecer devuelve la vista original. Sus ajustes son
+para previsualizar: la descarga contiene el modelo original sin estos cambios.
+
+En Blender: Archivo > Importar > glTF 2.0, seleccionar mage.glb.
+Las piezas están agrupadas bajo Mage. Mueve/rota ese objeto raíz para colocar
+el personaje entero, o selecciona sus piezas si quieres editarlas.
+Después puedes guardar como .blend desde Blender.
+
+Escala: 1 píxel de la referencia equivale a 1/32 unidades. Eje Y vertical.
+Diseño basado en assets/images/player/mage2.bmp. Capucha, túnica, ojos,
+bastón y cristal son geometría real; no hay texturas pixeladas ni vóxeles.
+No tiene esqueleto ni animaciones.
+
+La anchura, altura, silueta y paleta siguen el dibujo. No es posible garantizar
+una reconstrucción idéntica al 100% desde sprites: profundidad, superficies
+ocultas y ángulos intermedios son una interpretación. El bastón se coloca
+delante para conservar la lectura frontal; las cuatro proyecciones 2D no
+determinan por sí solas un volumen y una perspectiva únicos.
+
+build_smooth_model.py permite regenerar y modificar la geometría con Python,
+numpy y Pillow. No se ha integrado ni cambiado ningún archivo del juego.

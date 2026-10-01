@@ -9,7 +9,7 @@ from game.visuals.animated_visual import AnimatedVisual
 
 
 class ShooterEnemy(Enemy):
-    def __init__(self, position, level=1):
+    def __init__(self, position, level=1, with_visual=True):
         health = int(config.ENEMY_MAX_HEALTH * (1.12 ** (level-1)))
         #damage = int(config.ENEMY_DAMAGE * (1.08 ** (level - 1)))
         #speed = config.ENEMY_SPEED * (1.02 * (level - 1))
@@ -31,33 +31,35 @@ class ShooterEnemy(Enemy):
         self.shoot_distance = config.SHOOTER_ENEMY_SHOOT_DISTANCE
         self.bullet_element = None
 
-        self.visual = AnimatedVisual(
-            image_folder="enemies/rat",
-            image_name="rat_animated.png",
-            frame_cols=4,
-            frame_rows=4,
-            scale_x = 32,
-            scale_y = 32,
-            use_alpha=True,
-            initial_state="idle",
-            initial_facing="down",
-            animations={
-                "idle_right": {"row": 0, "frames": [0], "speed": 0.25, "loop": True},
-                "walk_right": {"row": 0, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
-
-                "idle_left": {"row": 1, "frames": [0], "speed": 0.25, "loop": True},
-                "walk_left": {"row": 1, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
-
-                "idle_down": {"row": 2, "frames": [0], "speed": 0.25, "loop": True},
-                "walk_down": {"row": 2, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
-
-                "idle_up": {"row": 3, "frames": [0], "speed": 0.25, "loop": True},
-                "walk_up": {"row": 3, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
-            },
-        )
+        if with_visual:
+            self.visual = AnimatedVisual(
+                image_folder="enemies/rat",
+                image_name="rat_animated.png",
+                frame_cols=4,
+                frame_rows=4,
+                scale_x = 32,
+                scale_y = 32,
+                use_alpha=True,
+                initial_state="idle",
+                initial_facing="down",
+                animations={
+                    "idle_right": {"row": 0, "frames": [0], "speed": 0.25, "loop": True},
+                    "walk_right": {"row": 0, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
+    
+                    "idle_left": {"row": 1, "frames": [0], "speed": 0.25, "loop": True},
+                    "walk_left": {"row": 1, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
+    
+                    "idle_down": {"row": 2, "frames": [0], "speed": 0.25, "loop": True},
+                    "walk_down": {"row": 2, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
+    
+                    "idle_up": {"row": 3, "frames": [0], "speed": 0.25, "loop": True},
+                    "walk_up": {"row": 3, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
+                },
+            )
 
 
     def move(self, player, dt, blockers, entities, room=None):
+        self._movement_dt = dt
         diff_x = player.x - self.x
         diff_y = player.y - self.y
         distance = math.hypot(diff_x, diff_y)
@@ -66,25 +68,30 @@ class ShooterEnemy(Enemy):
             self.visual.set_state("idle")
             return
 
-        direction = 0
-
-        if distance > self.preferred_distance:
-            direction = 1
+        visible = self.has_clear_path(self.x, self.y, player.x, player.y, blockers)
+        if distance > self.preferred_distance or not visible:
+            move_x, move_y = self.get_path_movement(player, dt, room, blockers)
         elif distance < self.preferred_distance - 50:
-            direction = -1
-
-        if direction == 0:
+            # Retreat only into free space; when backed into a wall, try an
+            # oblique escape that still increases the distance from the player.
+            angle = math.atan2(-diff_y, -diff_x)
+            move_x = move_y = 0
+            step = max(0, self.get_movement_speed() * dt)
+            lookahead = max(self.radius * 2, step)
+            for turn in (0, math.pi / 4, -math.pi / 4, math.pi / 2, -math.pi / 2):
+                dx, dy = math.cos(angle + turn), math.sin(angle + turn)
+                if self.has_clear_path(self.x, self.y, self.x + dx * lookahead,
+                                       self.y + dy * lookahead, blockers):
+                    move_x, move_y = dx * step, dy * step
+                    break
+        else:
             self.visual.set_state("idle")
             return
-
-        movement_speed = self.get_movement_speed()
-        move_x = direction * (diff_x / distance) * movement_speed * dt
-        move_y = direction * (diff_y / distance) * movement_speed * dt
 
         old_x = self.x
         old_y = self.y
 
-        self.move_by(move_x, move_y, blockers, entities)
+        self.move_safely(move_x, move_y, blockers, entities)
 
         real_move_x = self.x - old_x
         real_move_y = self.y - old_y
@@ -117,6 +124,6 @@ class ShooterEnemy(Enemy):
         return shot
 
     def update(self, player, dt, blockers, entities,  room=None):
-        super().update(player, dt, blockers, entities)
+        super().update(player, dt, blockers, entities, room)
         self.shoot_timer = max(0, self.shoot_timer - dt)
         return self.shoot(player)

@@ -1,3 +1,4 @@
+from game.systems.impacts import Impact, apply_impact
 import math
 
 from game.visuals.electric_discharge import ElectricImpact, draw_discharge
@@ -87,7 +88,7 @@ class ElectricChain:
         self.timer += dt
 
         if self.timer >= self.jump_duration:
-            self.target.take_damage(self.damage)
+            apply_impact(self.target, Impact(self.damage, kind='effect', source=self))
             visual_effects.append(ElectricImpact(self.target.x, self.target.y))
 
             self.visited.add(self.target)

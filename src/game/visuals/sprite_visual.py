@@ -16,6 +16,9 @@ class SpriteVisual:
         use_alpha=False,
     ):
         image_path = asset_path("images", image_folder, image_name)
+        self.source = dict(image_folder=image_folder, image_name=image_name,
+                           frame_cols=frame_cols, frame_rows=frame_rows,
+                           colorkey=colorkey, use_alpha=use_alpha)
 
         if use_alpha:
             self.sprite_sheet = pygame.image.load(image_path).convert_alpha()
@@ -54,6 +57,12 @@ class SpriteVisual:
             self.frame_height,
         )
         return self.sprite_sheet.subsurface(frame_rect).copy()
+
+    def reloaded(self):
+        sprite = SpriteVisual(**self.source, scale_x=self.scale_x, scale_y=self.scale_y)
+        sprite.set_frame(self.current_col, self.current_row)
+        sprite.tint = self.tint
+        return sprite
 
     def set_frame(self, col, row):
         self.current_col = col

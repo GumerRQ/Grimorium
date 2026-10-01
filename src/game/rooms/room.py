@@ -5,6 +5,8 @@ import random
 
 from game import config
 from game.utils.paths import asset_path
+from game.rooms.destructible import Destructible, Debris
+from game.systems.impacts import Impact, apply_impact
 
 
 class Room:
@@ -15,8 +17,12 @@ class Room:
 
         self.walls = []
         self.objects = []
+        self.destructibles = []
+        self.debris = []
+        self.object_coins = 0
         self.voids = []
         self.floors = []
+        self.floor_variants = {}
         self.doors = []
 
         self.player_spawn = None
@@ -37,6 +43,14 @@ class Room:
         self.offset_y = (self.viewport_height - self.room_height) // 2
        
 
+        self.load_art()
+
+        self.load_layout()
+        self.build_tower_structure()
+        
+
+
+    def load_art(self):
         wall_top = pygame.image.load(
             asset_path("images", "tiles", "wall_top.png")
         ).convert_alpha()
@@ -144,11 +158,6 @@ class Room:
             },
         }
 
-
-        self.load_layout()
-        
-
-
     def is_floor_tile(self, row, col):
         if row < 0 or row >= len(self.layout):
             return False
@@ -191,9 +200,12 @@ class Room:
             self.used_rare_floor_positions.append((row, col))
 
         sprite = self.floor_sprites[index]
+        self._last_floor_transform = (0, False, False)
 
         if index in self.common_floor_indices:
             sprite = self.randomize_floor_sprite(sprite)
+
+        self.floor_variants[(row, col)] = (index, *self._last_floor_transform)
 
         return sprite
     
@@ -260,7 +272,9 @@ class Room:
                     self.enemy_spawns.append(enemy)
 
                 elif tile == "O":
-                    self.objects.append(rect)
+                    prop = Destructible(rect, on_destroy=self.destroy_object)
+                    self.destructibles.append(prop)
+                    self.objects.append(prop.rect)
 
                 elif tile == "V":
                     self.voids.append(rect)
@@ -377,6 +391,7 @@ class Room:
 
         flip_x = random.choice([False, True])
         flip_y = random.choice([False, True])
+        self._last_floor_transform = (angle, flip_x, flip_y)
 
         if flip_x or flip_y:
             result = pygame.transform.flip(result, flip_x, flip_y)
@@ -442,6 +457,25 @@ class Room:
         if down and right and not down_right:
             self.add_corner(x + tile_size, y + tile_size, "inner_top_left")
 
+
+    def hit_object(self, prop, body=False, impact=None):
+        if prop not in self.destructibles:
+            return
+        return apply_impact(prop, impact or Impact(kind='contact' if body else 'projectile'))
+
+    def destroy_object(self, prop):
+        if prop not in self.destructibles:
+            return
+        self.destructibles.remove(prop)
+        self.objects.remove(prop.rect)
+        self.debris.extend(Debris(image, prop.rect.center) for image in prop.fragments)
+        self.object_coins += prop.spec['coins']
+
+    def update_objects(self, dt):
+        for prop in self.destructibles:
+            prop.update(dt)
+        for fragment in self.debris:
+            fragment.update(dt, self)
 
     def get_blocking_rects(self, include_walls=True, include_objects=True, include_voids=False):
         rects = []
@@ -645,7 +679,17 @@ class Room:
         return sides
 
 
-    def draw(self, surface):
+    def build_tower_structure(self):
+        """Unseen space inside the shared footprint, with no extra architecture."""
+        cell = config.ROOM_CELL_SIZE
+        self.perimeter_rect = pygame.Rect(self.offset_x - cell, self.offset_y + cell,
+                                         15 * cell, 10 * cell)
+        self.structure = pygame.Surface((self.viewport_width, self.viewport_height), pygame.SRCALPHA)
+        # Lower floors are supplied by the run history; no invented black slab.
+
+    def draw(self, surface, include_structure=True):
+        if include_structure:
+            surface.blit(self.structure, (0, 0))
         for floor in self.floors:
             surface.blit(floor["sprite"], floor["rect"].topleft)
 
@@ -655,8 +699,10 @@ class Room:
                     floor["rect"].topleft,
                 )
                 
-        for obj in self.objects:
-            pygame.draw.rect(surface, (120, 100, 60), obj)
+        for fragment in self.debris:
+            fragment.draw(surface)
+        for prop in self.destructibles:
+            prop.draw(surface)
 
         for void in self.voids:
             pygame.draw.rect(surface, (5, 5, 10), void)

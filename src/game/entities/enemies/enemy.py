@@ -1,7 +1,10 @@
+from game.systems.impacts import Impact, apply_impact
 import math
 import pygame
 
 from game import config
+from game.systems.collision_shapes import movement_bounds, overlap_area
+from game.systems.enemy_navigation import EnemyNavigator, clear_box_segment
 from game.entities.entity import LivingEntity
 from game.visuals.burn_flames import draw_burn_flames
 from game.visuals.ice_block import ice_block_surfaces
@@ -92,20 +95,113 @@ class Enemy(LivingEntity):
         }
 
         self.visual = None
+        self.navigator = EnemyNavigator()
+        self._hitbox_key = None
+        self._pending_facing = None
+        self._facing_time = 0.0
+        self._idle_time = 0.0
+        self._movement_dt = 1 / 60
+
+    def _fit_hitboxes(self):
+        sprite = getattr(self.visual, "sprite", None)
+        key = (id(sprite), getattr(sprite, "scale_x", None), getattr(sprite, "scale_y", None), self.radius)
+        if key == self._hitbox_key:
+            return
+        self._hitbox_key = key
+        bounds = None
+        if sprite is not None and isinstance(sprite.frame_rows, int):
+            for row in range(sprite.frame_rows):
+                for col in range(sprite.frame_cols):
+                    frame = pygame.transform.scale(sprite.get_frame(col, row), (sprite.scale_x, sprite.scale_y))
+                    visible = frame.get_bounding_rect()
+                    if visible.width and visible.height:
+                        bounds = visible if bounds is None else bounds.union(visible)
+        if bounds is None:
+            self._body_box = (-self.radius, -self.radius, self.radius, self.radius)
+            self._move_half = (self.radius, self.radius)
+        else:
+            left, top = bounds.x - sprite.scale_x / 2, bounds.y - sprite.scale_y / 2
+            self._body_box = (left, top, left + bounds.width, top + bounds.height)
+            # A stable ground footprint, independent of arm swing and facing.
+            self._move_half = (min(self.radius, bounds.width * 0.3),
+                               min(self.radius * 0.7, bounds.height * 0.25))
+
+    @property
+    def movement_half_size(self):
+        self._fit_hitboxes()
+        return self._move_half
+
+    def get_movement_bounds(self):
+        hx, hy = self.movement_half_size
+        return self.x - hx, self.y - hy, self.x + hx, self.y + hy
+
+    def get_hitbox_bounds(self):
+        self._fit_hitboxes()
+        left, top, right, bottom = self._body_box
+        return self.x + left, self.y + top, self.x + right, self.y + bottom
+
+    @property
+    def hitbox(self):
+        left, top, right, bottom = self.get_hitbox_bounds()
+        return pygame.Rect(round(left), round(top), round(right - left), round(bottom - top))
+
+    def collides_with_rects(self, rects):
+        bounds = self.get_movement_bounds()
+        return any(overlap_area(bounds, (r.left, r.top, r.right, r.bottom)) > 1e-8 for r in rects)
+
+    def collides_with_circles(self, entities):
+        bounds = self.get_movement_bounds()
+        return any(e is not self and overlap_area(bounds, movement_bounds(e)) > 1e-8 for e in entities)
+
+    def move_by(self, move_x, move_y, blockers, entities):
+        # Existing overlap (spawn/knockback) must not imprison both enemies.
+        # Allow escape, but never increase penetration or push neighbors around.
+        obstacles = [(r.left, r.top, r.right, r.bottom) for r in blockers]
+        obstacles.extend(movement_bounds(e) for e in entities if e is not self)
+        for axis, amount in (("x", move_x), ("y", move_y)):
+            if abs(amount) < 1e-12:
+                continue
+            old = getattr(self, axis)
+            before = self.get_movement_bounds()
+            setattr(self, axis, old + amount)
+            after = self.get_movement_bounds()
+            if any(overlap_area(after, b) > 1e-8 and
+                   overlap_area(after, b) >= overlap_area(before, b) - 1e-8 for b in obstacles):
+                setattr(self, axis, old)
+                continue
+            room = getattr(self, 'prop_room', None)
+            if room is not None and not getattr(self, 'is_flying', False) and not getattr(self, 'contact_disabled', False):
+                blocked = False
+                for prop in tuple(room.destructibles):
+                    bounds = (prop.rect.left, prop.rect.top, prop.rect.right, prop.rect.bottom)
+                    if overlap_area(after, bounds) > 1e-8 and overlap_area(after, bounds) >= overlap_area(before, bounds):
+                        room.hit_object(prop, body=True)
+                        blocked = blocked or not prop.is_dead()
+                if blocked:
+                    setattr(self, axis, old)
 
     def move(self, player, dt, blockers, entities, room=None):
-        diff_x = player.x - self.x
-        diff_y = player.y - self.y
-        distance = math.hypot(diff_x, diff_y)
+        self._movement_dt = dt
+        move_x, move_y = self.get_path_movement(player, dt, room, blockers)
+        old_x, old_y = self.x, self.y
+        self.move_safely(move_x, move_y, blockers, entities)
+        if self.visual is not None:
+            self.update_visual_from_movement(self.x - old_x, self.y - old_y)
 
-        if distance <= 0:
-            return
+    def get_path_movement(self, player, dt, room, blockers):
+        return self.navigator.movement(self, (player.x, player.y), dt, room, blockers)
 
-        movement_speed = self.get_movement_speed()
-        move_x = (diff_x / distance) * movement_speed * dt
-        move_y = (diff_y / distance) * movement_speed * dt
+    def has_clear_path(self, start_x, start_y, target_x, target_y, blockers):
+        return clear_box_segment((start_x, start_y), (target_x, target_y), self.movement_half_size, blockers)
 
-        self.move_by(move_x, move_y, blockers, entities)
+    def move_safely(self, move_x, move_y, blockers, entities):
+        # Collision substeps never repeat route planning.
+        count = max(1, math.ceil(math.hypot(move_x, move_y) / max(1, self.radius / 4)))
+        for _ in range(count):
+            old_x, old_y = self.x, self.y
+            self.move_by(move_x / count, move_y / count, blockers, entities)
+            if (self.x, self.y) == (old_x, old_y):
+                break
 
     def get_movement_speed(self):
         return self.speed
@@ -199,7 +295,7 @@ class Enemy(LivingEntity):
             burn["tick_timer"] -= dt
 
             if burn["tick_timer"] <= 0:
-                self.take_damage(burn["damage"])
+                apply_impact(self, Impact(burn['damage'], kind='burn'))
                 self.damage_flash_timer = 0.2
                 burn["tick_timer"] = 1
         else:
@@ -304,12 +400,15 @@ class Enemy(LivingEntity):
         self.update_status_effects(dt)
         self.move(player, dt, blockers, entities, room)
 
-        if self.visual is not None:
-            self.visual.update(dt)
+        self.update_animation(dt)
 
         self.update_visual_effects()
         self.update_knockback(dt, blockers, entities)
         return []
+
+    def update_animation(self, dt):
+        if self.visual is not None:
+            self.visual.update(dt)
     
     def take_damage(self, damage):
         fragile = self.status_effects["fragile"]
@@ -355,22 +454,34 @@ class Enemy(LivingEntity):
 
 
     def update_visual_from_movement(self, move_x, move_y):
-        if abs(move_x) > abs(move_y):
-            if move_x > 0:
-                self.visual.set_facing("right")
-            elif move_x < 0:
-                self.visual.set_facing("left")
+        if self.visual is None:
+            return
+        dt = max(0, self._movement_dt)
+        if math.hypot(move_x, move_y) < 0.01:
+            self._idle_time += dt
+            self._pending_facing = None
+            self._facing_time = 0.0
+            if self._idle_time >= 0.12:
+                self.visual.set_state("idle")
+            return
+        self._idle_time = 0.0
+        facing = self.visual.animator.facing
+        horizontal = facing in ("left", "right")
+        if horizontal and abs(move_y) > abs(move_x) * 1.35:
+            horizontal = False
+        elif not horizontal and abs(move_x) > abs(move_y) * 1.35:
+            horizontal = True
+        candidate = ("right" if move_x > 0 else "left") if horizontal else ("down" if move_y > 0 else "up")
+        if candidate == facing:
+            self._pending_facing, self._facing_time = None, 0.0
         else:
-            if move_y > 0:
-                self.visual.set_facing("down")
-            elif move_y < 0:
-                self.visual.set_facing("up")
-
-        if move_x != 0 or move_y != 0:
-            self.visual.set_state("walk")
-        else:
-            self.visual.set_state("idle")
-
+            if candidate != self._pending_facing:
+                self._pending_facing, self._facing_time = candidate, 0.0
+            self._facing_time += dt
+            if self._facing_time >= 0.12:
+                self.visual.set_facing(candidate)
+                self._pending_facing, self._facing_time = None, 0.0
+        self.visual.set_state("walk")
 
     def draw_ground_shadow(self, surface):
         if not getattr(self, "is_flying", False) or self.is_dead():

@@ -1,3 +1,4 @@
+from game.systems.collision_shapes import circle_overlaps_entity
 import math
 import random
 
@@ -132,11 +133,7 @@ class ToxicTrail:
                 continue
 
             for segment in self.segments:
-                distance = math.hypot(
-                    enemy.x - segment["x"],
-                    enemy.y - segment["y"],
-                )
-                if distance <= self.radius + enemy.radius:
+                if circle_overlaps_entity(segment["x"], segment["y"], self.radius, enemy):
                     for _ in range(self.stacks_per_tick):
                         apply_poison_data(
                             enemy,

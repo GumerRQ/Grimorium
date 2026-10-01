@@ -1,3 +1,4 @@
+from game.systems.impacts import Impact, apply_impact
 import pygame
 import random
 import math
@@ -94,7 +95,7 @@ class IcePuddle:
                 continue
 
             if self.contains_entity(enemy):
-                enemy.take_damage(self.tick_damage)
+                apply_impact(enemy, Impact(self.tick_damage, kind='effect', source=self))
 
     def slow_enemies(self, enemies):
         if self.slow_multiplier >= 1:

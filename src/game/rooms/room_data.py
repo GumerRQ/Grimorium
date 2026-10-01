@@ -1,177 +1,72 @@
+"""All tower floors share a 13-column, 11-row frame.
+
+Eight interior rows sit between aligned double doors. Spaces are solid
+inaccessible structure; enclosed spaces are dark shafts. V is a floor pit.
+"""
 import random
-
-"""
-# = pared
-. = suelo
-P = posición inicial del jugador
-B = posición del jefe
-E = enemigo normal
-V = vacio
-O = objeto
-I = item
-N = siguiente nivel
-D = primera mitad de puerta doble / siguiente nivel en pared
-d = segunda mitad de puerta doble
-"""
+from game.rooms.custom_rooms import active_rooms
 
 
-BOSS_ROOM_1 = [
-    "             ",
-    "          Dd ",
-    ".............",
-    "......B......",
-    ".............",
-    ".............",
-    ".............",
-    ".............",
-    "..........P..",
-    "         Aa  ",
-]
-
-BOSS_ROOM_2 = [
-    "             ",
-    "          Dd ",
-    ".............",
-    ".OOO..B..OOO.",
-    ".............",
-    ".OOO.....OOO.",
-    ".............",
-    "..........P..",
-    "         Aa  ",
-]
-
-RANDOM_ROOM_1 = [
-    "             ",
-    "          Dd ",
-    ".............",
-    "..E...E...E..",
-    ".............",
-    ".....OOO.....",
-    ".....OOO.....",
-    ".............",
-    ".............",
-    "..........P..",
-    "         Aa  ",
-]
-
-RANDOM_ROOM_2 = [
-    "             ",
-    "          Dd ",
-    "OO..........O",
-    "..E...E...E..",
-    "....E...E....",
-    "VVVV.....VVVV",
-    ".............",
-    ".............",
-    "OO.........OO",
-    "..........P..",
-    "         Aa  ",
-]
-
-RANDOM_ROOM_L = [
-    "             ",
-    "          Dd ",
-    ".............",
-    ".E..E........",
-    ".....E...    ",
-    "E......E.    ",
-    ".........    ",
-    ".............",
-    ".............",
-    "..........P..",
-    "         Aa  ",
-]
-
-RANDOM_ROOM_O = [
-    "             ",
-    "          Dd ",
-    ".....E.......",
-    ".E....E......",
-    "...       ...",
-    "...       .E.",
-    "...       ...",
-    "...       ...",
-    ".............",
-    "..E.......P..",
-    "         Aa  ",
-]
+def tower_room(rows):
+    if len(rows) != 8 or any(len(row) > 13 for row in rows):
+        raise ValueError("Tower rooms require eight interior rows of at most 13 cells")
+    return [" " * 13, "         Dd  ",
+            *(row.ljust(13) for row in rows), "         Aa  "]
 
 
-RANDOM_ROOM_S = [
-    "             ",
-    "          Dd ",
-    ".............",
-    ".           .",
-    ".           .",
-    ".............",
-    "            .",
-    "            .",
-    ".............",
-    ".         .P.",
-    "          Aa ",
-]
-
-
-RANDOM_ROOM_BOX = [
-    "             ",
-    "..E.E..E..E..",
-    "             ",
-    "EEEEEEEEEEEEE",
-    "VVVVVVVVVVVVV",
-    ".....E.......",
-    ".E...........",
-    ".............",
-    "..........P..",
-    "  Dd     Aa  ",
-]
-
-
-RANDOM_ROOM_ZAP = [
-    "     Dd      ",
-    "EVVV....VVVE",
-    "VVvV....VEVV",
-    "VVVV....VVVE",
-    "VVEV....VEVV",
-    "VVVV....VVVE",
-    "VVvV....VEVV",
-    "EVVV....VVVE",
-    "VV......P.VV",
-    "       Aa   ",
-]
-
-RANDOM_ROOM_CROSS = [
-    "      Dd     ",
-    "     ....    ",
-    "     ....    ",
-    "............",
-    "....E.......",
-    "............",
-    "............",
-    "    ....    ",
-    "    ..P.    ",
-    "     Aa     ",
-]
-
-
-NORMAL_ROOMS = [
-    RANDOM_ROOM_1,
-    RANDOM_ROOM_2,
-    RANDOM_ROOM_L,
-    RANDOM_ROOM_O,
-    # RANDOM_ROOM_S,
-    # RANDOM_ROOM_BOX,
-    # RANDOM_ROOM_ZAP,
-    # RANDOM_ROOM_CROSS
-]
-
-BOSS_ROOMS = [
-    BOSS_ROOM_1,
-    BOSS_ROOM_2
-]
+BOSS_ROOM_1 = tower_room([
+    ".............", "......B......", ".............", ".............",
+    ".............", ".............", ".............", "..........P..",
+])
+BOSS_ROOM_2 = tower_room([
+    ".............", ".OOO..B..OOO.", ".............", ".OOO.....OOO.",
+    ".............", ".............", ".............", "..........P..",
+])
+RANDOM_ROOM_1 = tower_room([
+    ".............", "..E...E...E..", ".............", ".....OOO.....",
+    ".....OOO.....", ".............", ".............", "..........P..",
+])
+RANDOM_ROOM_2 = tower_room([
+    "OO..........O", "..E...E...E..", "....E...E....", "VVVV.....VVVV",
+    ".............", ".............", "OO.........OO", "..........P..",
+])
+RANDOM_ROOM_L = tower_room([
+    ".............", ".E..E........", ".....E...    ", "E......E.    ",
+    ".........    ", ".............", ".............", "..........P..",
+])
+RANDOM_ROOM_O = tower_room([
+    ".....E.......", ".E....E......", "...       ...", "...       .E.",
+    "...       ...", "...       ...", ".............", "..E.......P..",
+])
+RANDOM_ROOM_SMALL = tower_room([
+    "         ..  ", "  .........  ", "  .E....E..  ", "  .........  ",
+    "  ....O....  ", "  .E.......  ", "  .........  ", "         .P  ",
+])
+# Optional layouts use the same frame and connected entrance/exit corridors.
+RANDOM_ROOM_S = tower_room([
+    ".............", ".           .", ".           .", ".............",
+    "            .", "            .", ".............", "         .P..",
+])
+RANDOM_ROOM_BOX = tower_room([
+    "..E.E..E..E..", ".............", "EEEEEEEEEEEEE", "VVVV.....VVVV",
+    ".....E.......", ".E...........", ".............", "..........P..",
+])
+RANDOM_ROOM_ZAP = tower_room([
+    "EVVV.......VE", "VVVV....V..VV", "VVVV....VVVE", "VVEV....VEVV",
+    "VVVV....VVVE", "VVVV....VEVV", "EVVV.......VE", "VV.......P.VV",
+])
+RANDOM_ROOM_CROSS = tower_room([
+    "     ......  ", "     ....    ", ".............", "....E........",
+    ".............", ".............", "    .......  ", "    .....P.  ",
+])
+NORMAL_ROOMS = [RANDOM_ROOM_1, RANDOM_ROOM_2, RANDOM_ROOM_L, RANDOM_ROOM_O,
+                RANDOM_ROOM_SMALL]
+BOSS_ROOMS = [BOSS_ROOM_1, BOSS_ROOM_2]
 
 
 def get_random_normal_room():
-    return random.choice(NORMAL_ROOMS)
+    return random.choice(NORMAL_ROOMS + active_rooms("normal"))
+
 
 def get_random_boss_room():
-    return random.choice(BOSS_ROOMS)
+    return random.choice(BOSS_ROOMS + active_rooms("boss"))

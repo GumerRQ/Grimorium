@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "name": "Sala objetos",
+  "type": "normal",
+  "enabled": true,
+  "layout": [
+    "             ",
+    "         Dd  ",
+    "E............",
+    "OOOOOOOOOOOO.",
+    "OOOOOOOOOOOO.",
+    "OOOOOOOOOOOO.",
+    "OOOOOOOOOOOO.",
+    "OOOOOOOOOOOO.",
+    "OOOOOOOOOOOO.",
+    "OOOOOOOOO.P..",
+    "         Aa  "
+  ]
+}

@@ -1,3 +1,4 @@
+from game.systems.collision_shapes import circle_overlaps_entity
 import math
 import random
 import pygame
@@ -125,9 +126,8 @@ class PoisonCloud:
             if enemy.is_dead():
                 continue
 
-            distance = math.hypot(enemy.x - self.x, enemy.y - self.y)
 
-            if distance <= self.radius + enemy.radius:
+            if circle_overlaps_entity(self.x, self.y, self.radius, enemy):
                 poison = enemy.status_effects["poison"]
 
                 poison["max_stacks"] = self.poison_data["max_stacks"]

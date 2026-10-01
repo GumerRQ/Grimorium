@@ -1,3 +1,4 @@
+from game.systems.impacts import Impact, apply_impact
 import math
 from game.systems.electric_chain import ElectricChain
 from game.systems.frost_wave import freeze_enemy
@@ -147,8 +148,7 @@ def try_execute_fragile_enemy(enemy, combo_data):
     # Una vez preparada la ejecución, el siguiente impacto de veneno mata.
     # No se ejecuta al preparar el estado: así se llega a dibujar la marca.
     if fragile["is_ready_to_execute"]:
-        enemy.health = 0
-        enemy.damage_flash_timer = 0.15
+        apply_impact(enemy, Impact(kind='execution', execute=True))
         return
 
     poison = enemy.status_effects["poison"]

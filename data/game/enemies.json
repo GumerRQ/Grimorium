@@ -1,0 +1,304 @@
+{
+  "rat": {
+    "behavior": "rat",
+    "enabled": true,
+    "weight": 1,
+    "health": 6,
+    "health_growth": 1.12,
+    "speed": 45,
+    "damage": 1,
+    "body_damage": 1,
+    "radius": 10,
+    "visual": {
+      "image_folder": "enemies/rat",
+      "image_name": "rat_animated.png",
+      "frame_cols": 4,
+      "frame_rows": 4,
+      "scale_x": 32,
+      "scale_y": 32,
+      "use_alpha": true,
+      "initial_state": "idle",
+      "initial_facing": "down",
+      "animations": {
+        "idle_right": {
+          "row": 0,
+          "frames": [
+            0
+          ],
+          "speed": 0.25,
+          "loop": true
+        },
+        "walk_right": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "speed": 0.25,
+          "loop": true
+        },
+        "idle_left": {
+          "row": 1,
+          "frames": [
+            0
+          ],
+          "speed": 0.25,
+          "loop": true
+        },
+        "walk_left": {
+          "row": 1,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "speed": 0.25,
+          "loop": true
+        },
+        "idle_down": {
+          "row": 2,
+          "frames": [
+            0
+          ],
+          "speed": 0.25,
+          "loop": true
+        },
+        "walk_down": {
+          "row": 2,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "speed": 0.25,
+          "loop": true
+        },
+        "idle_up": {
+          "row": 3,
+          "frames": [
+            0
+          ],
+          "speed": 0.25,
+          "loop": true
+        },
+        "walk_up": {
+          "row": 3,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "speed": 0.25,
+          "loop": true
+        }
+      }
+    }
+  },
+  "goblin": {
+    "behavior": "goblin",
+    "enabled": true,
+    "weight": 1,
+    "health": 6,
+    "health_growth": 1.12,
+    "speed": 45,
+    "damage": 1,
+    "body_damage": 1,
+    "radius": 10,
+    "visual": {
+      "image_folder": "enemies/goblin",
+      "image_name": "goblin.png",
+      "frame_cols": 1,
+      "frame_rows": 1,
+      "scale_x": 32,
+      "scale_y": 32,
+      "use_alpha": false,
+      "colorkey": [
+        84,
+        206,
+        76
+      ],
+      "initial_state": "idle",
+      "initial_facing": "down",
+      "animations": {
+        "idle": {
+          "row": 0,
+          "frames": [
+            0
+          ],
+          "speed": 0.25,
+          "loop": true
+        },
+        "walk": {
+          "row": 0,
+          "frames": [
+            0
+          ],
+          "speed": 0.25,
+          "loop": true
+        }
+      }
+    },
+    "shooting": {
+      "shoot_cooldown": 3,
+      "bullet_speed": 115,
+      "shoot_distance": 120,
+      "preferred_distance": 100
+    }
+  },
+  "golem": {
+    "behavior": "golem",
+    "enabled": true,
+    "weight": 1,
+    "health": 6,
+    "health_growth": 1.12,
+    "speed": 22.5,
+    "damage": 1,
+    "body_damage": 1,
+    "radius": 13,
+    "visual": {
+      "image_folder": "enemies/golem",
+      "image_name": "golem_animated.png",
+      "frame_cols": 4,
+      "frame_rows": 4,
+      "scale_x": 64,
+      "scale_y": 64,
+      "use_alpha": true,
+      "initial_state": "idle",
+      "initial_facing": "down",
+      "animations": {
+        "idle_right": {
+          "row": 1,
+          "frames": [
+            0
+          ],
+          "speed": 0.45,
+          "loop": true
+        },
+        "walk_right": {
+          "row": 1,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "speed": 0.45,
+          "loop": true
+        },
+        "idle_left": {
+          "row": 2,
+          "frames": [
+            0
+          ],
+          "speed": 0.45,
+          "loop": true
+        },
+        "walk_left": {
+          "row": 2,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "speed": 0.45,
+          "loop": true
+        },
+        "idle_down": {
+          "row": 0,
+          "frames": [
+            0
+          ],
+          "speed": 0.45,
+          "loop": true
+        },
+        "walk_down": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "speed": 0.45,
+          "loop": true
+        },
+        "idle_up": {
+          "row": 3,
+          "frames": [
+            0
+          ],
+          "speed": 0.45,
+          "loop": true
+        },
+        "walk_up": {
+          "row": 3,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "speed": 0.45,
+          "loop": true
+        }
+      }
+    }
+  },
+  "dragon": {
+    "behavior": "dragon",
+    "enabled": true,
+    "weight": 1,
+    "health": 6,
+    "health_growth": 1.12,
+    "speed": 45,
+    "damage": 1,
+    "body_damage": 1,
+    "radius": 10,
+    "visual": {
+      "image_folder": "enemies/dragoncin",
+      "image_name": "dragoncin.png",
+      "frame_cols": 1,
+      "frame_rows": 1,
+      "scale_x": 32,
+      "scale_y": 32,
+      "use_alpha": false,
+      "colorkey": [
+        84,
+        206,
+        76
+      ],
+      "initial_state": "idle",
+      "initial_facing": "down",
+      "animations": {
+        "idle": {
+          "row": 0,
+          "frames": [
+            0
+          ],
+          "speed": 0.25,
+          "loop": true
+        },
+        "walk": {
+          "row": 0,
+          "frames": [
+            0
+          ],
+          "speed": 0.25,
+          "loop": true
+        }
+      }
+    },
+    "shooting": {
+      "shoot_cooldown": 3,
+      "bullet_speed": 115,
+      "shoot_distance": 120,
+      "preferred_distance": 100
+    }
+  }
+}

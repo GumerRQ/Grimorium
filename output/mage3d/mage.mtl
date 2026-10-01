@@ -1,0 +1,49 @@
+newmtl Cloth
+Kd 0.226966 0.270498 0.313989
+Ka 0.1 0.1 0.1
+Ks 0.2 0.2 0.2
+Ns 30
+illum 2
+
+newmtl Cloth_edge
+Kd 0.119538 0.141263 0.162029
+Ka 0.1 0.1 0.1
+Ks 0.2 0.2 0.2
+Ns 30
+illum 2
+
+newmtl Face_shadow
+Kd 0.008568 0.009134 0.008023
+Ka 0.1 0.1 0.1
+Ks 0.2 0.2 0.2
+Ns 30
+illum 2
+
+newmtl Golden_eyes
+Kd 0.630757 0.479320 0.000000
+Ka 0.1 0.1 0.1
+Ks 0.2 0.2 0.2
+Ns 30
+illum 2
+
+newmtl Wood
+Kd 0.278894 0.141263 0.024158
+Ka 0.1 0.1 0.1
+Ks 0.2 0.2 0.2
+Ns 30
+illum 2
+
+newmtl Socket
+Kd 0.577580 0.283149 0.043735
+Ka 0.1 0.1 0.1
+Ks 0.2 0.2 0.2
+Ns 30
+illum 2
+
+newmtl Crystal
+Kd 0.119538 0.693872 0.693872
+Ka 0.1 0.1 0.1
+Ks 0.2 0.2 0.2
+Ns 30
+illum 2
+

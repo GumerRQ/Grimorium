@@ -1,0 +1,198 @@
+{
+  "version": 2,
+  "items": {
+    "stats_panel": {
+      "rect": [
+        25,
+        67,
+        73,
+        167
+      ],
+      "align": "center",
+      "kind": "image",
+      "asset": "images/hud/panels/stats_panel.png",
+      "visible": true,
+      "members": [
+        "time",
+        "coins",
+        "damage",
+        "speed",
+        "fire_rate",
+        "shoot_distance",
+        "body_damage"
+      ]
+    },
+    "tower_panel": {
+      "rect": [
+        564,
+        60,
+        63,
+        275
+      ],
+      "align": "center",
+      "kind": "image",
+      "asset": "images/hud/panels/tower_panel.png",
+      "visible": true,
+      "members": [
+        "tower_view",
+        "tower_title",
+        "floor_label",
+        "floor_value",
+        "loop_label",
+        "loop_value"
+      ]
+    },
+    "health_bar": {
+      "rect": [
+        25,
+        15,
+        120,
+        16
+      ],
+      "align": "center"
+    },
+    "health_text": {
+      "rect": [
+        25,
+        15,
+        120,
+        16
+      ],
+      "align": "center"
+    },
+    "time": {
+      "rect": [
+        22,
+        79,
+        96,
+        16
+      ],
+      "align": "center"
+    },
+    "coins": {
+      "rect": [
+        36,
+        99,
+        68,
+        16
+      ],
+      "align": "center"
+    },
+    "damage": {
+      "rect": [
+        50,
+        123,
+        40,
+        16
+      ],
+      "align": "center"
+    },
+    "speed": {
+      "rect": [
+        50,
+        145,
+        40,
+        16
+      ],
+      "align": "center"
+    },
+    "fire_rate": {
+      "rect": [
+        50,
+        165,
+        40,
+        16
+      ],
+      "align": "center"
+    },
+    "shoot_distance": {
+      "rect": [
+        50,
+        185,
+        40,
+        16
+      ],
+      "align": "center"
+    },
+    "body_damage": {
+      "rect": [
+        50,
+        207,
+        40,
+        16
+      ],
+      "align": "center"
+    },
+    "tower_view": {
+      "rect": [
+        568,
+        88,
+        55,
+        167
+      ],
+      "align": "center"
+    },
+    "tower_title": {
+      "rect": [
+        568,
+        69,
+        55,
+        16
+      ],
+      "align": "center"
+    },
+    "floor_label": {
+      "rect": [
+        568,
+        264,
+        55,
+        16
+      ],
+      "align": "center"
+    },
+    "floor_value": {
+      "rect": [
+        568,
+        278,
+        55,
+        16
+      ],
+      "align": "center"
+    },
+    "loop_label": {
+      "rect": [
+        568,
+        300,
+        55,
+        16
+      ],
+      "align": "center"
+    },
+    "loop_value": {
+      "rect": [
+        568,
+        314,
+        55,
+        16
+      ],
+      "align": "center"
+    },
+    "image_stats_panel": {
+      "rect": [
+        283,
+        96,
+        73,
+        167
+      ],
+      "align": "center",
+      "kind": "image",
+      "asset": "images/hud/panels/stats_panel.png",
+      "name": "stats_panel",
+      "visible": true,
+      "members": [
+        "health_bar",
+        "health_text"
+      ]
+    }
+  }
+}

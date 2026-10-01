@@ -1,0 +1,37 @@
+{
+  "generator": "Built-in image_gen",
+  "assets": [
+    {
+      "name": "tree_oak",
+      "prompt": "Use case: stylized-concept. Asset type: a SINGLE editable PNG pixel-art sprite for a 2D top-down dark fantasy game, not a scene or sprite sheet. Subject: one broad oak tree crown seen vertically from directly overhead; no visible trunk, no horizon, no ground tile. Genuine TRANSPARENT background. Low-resolution pixel art enlarged with nearest-neighbor: design as if on a 48x48 pixel grid, chunky crisp square pixel clusters, dark outline, 5 muted colors: deep forest green, moss green, sage highlights, dark blue-green shadow. Organic asymmetric rounded silhouette, subtle top-left light. Center one tree with generous transparent margins, whole silhouette visible. No text, grid, checkered background, watermark, blur, realistic texture, gradients or antialiasing. This sprite must be easy to reduce to 48x48 pixels and edit in Aseprite. Output PNG with actual alpha."
+    },
+    {
+      "name": "tree_pine",
+      "prompt": "Use case: stylized-concept. Asset type: ONE editable PNG game sprite for a top-down 2D pixel-art dark fantasy game. Genuine TRANSPARENT background with alpha; no background scene, no floor tile, no text, no grid, no checkerboard, no watermark. The whole object fits centered with transparent margin. Crisp chunky square pixels, limited muted palette, flat color clusters, no gradients, blur or photographic textures. Design as a small low-resolution sprite enlarged using nearest-neighbor, easy to reduce to game size. Subject: one conifer canopy seen vertically from directly overhead, radial slightly star-shaped layers of needles, no trunk and NOT a side-view triangular Christmas tree. Design for 40x40 pixels, five colors of desaturated blue-green, dark forest green and sage, dark outline, top-left highlights. Visually match an old stone dungeon game's outdoor forest."
+    },
+    {
+      "name": "tree_birch",
+      "prompt": "Use case: stylized-concept. Asset type: ONE editable PNG game sprite for a top-down 2D pixel-art dark fantasy game. Genuine TRANSPARENT background with alpha; no background scene, no floor tile, no text, no grid, no checkerboard, no watermark. The whole object fits centered with transparent margin. Crisp chunky square pixels, limited muted palette, flat color clusters, no gradients, blur or photographic textures. Design as a small low-resolution sprite enlarged using nearest-neighbor, easy to reduce to game size. Subject: one small rounded deciduous tree canopy viewed vertically from directly overhead, asymmetrical compact lobes, no visible trunk. Design for 40x40 pixels, five muted colors of olive green, moss green and pale sage, dark green outline, top-left highlights."
+    },
+    {
+      "name": "rock_large",
+      "prompt": "Use case: stylized-concept. Asset type: ONE editable PNG game sprite for a top-down 2D pixel-art dark fantasy game. Genuine TRANSPARENT background with alpha; no background scene, no floor tile, no text, no grid, no checkerboard, no watermark. The whole object fits centered with transparent margin. Crisp chunky square pixels, limited muted palette, flat color clusters, no gradients, blur or photographic textures. Design as a small low-resolution sprite enlarged using nearest-neighbor, easy to reduce to game size. Subject: one irregular low grey boulder viewed straight down from above, a few broad polygonal facets, one small crack, tiny moss patch. Design for 24x20 pixels, five muted slate grey colors with a dark charcoal outline and top-left pale grey highlights. No vegetation outside the stone."
+    },
+    {
+      "name": "rock_small",
+      "prompt": "Use case: stylized-concept. Asset type: ONE editable PNG game sprite for a top-down 2D pixel-art dark fantasy game. Genuine TRANSPARENT background with alpha; no background scene, no floor tile, no text, no grid, no checkerboard, no watermark. The whole object fits centered with transparent margin. Crisp chunky square pixels, limited muted palette, flat color clusters, no gradients, blur or photographic textures. Design as a small low-resolution sprite enlarged using nearest-neighbor, easy to reduce to game size. Subject: one small cluster of three closely touching pebbles seen directly from above. Design for 18x14 pixels, five muted slate grey colors with a dark charcoal outline and top-left highlights. Simple clean silhouette."
+    },
+    {
+      "name": "cloud_wide",
+      "prompt": "Use case: stylized-concept. Asset type: ONE editable PNG game sprite for a top-down 2D pixel-art dark fantasy game. Genuine TRANSPARENT background with alpha; no background scene, no floor tile, no text, no grid, no checkerboard, no watermark. The whole object fits centered with transparent margin. Crisp chunky square pixels, limited muted palette, flat color clusters, no gradients, blur or photographic textures. Design as a small low-resolution sprite enlarged using nearest-neighbor, easy to reduce to game size. Subject: one elongated irregular bank of cloud seen from above, top-down aerial view, not side-view cartoon cloud. Width about twice the height. Design for 112x56 pixels, broad connected lobes and large simple stepped pixel clusters; use only four pale shades from blue-grey shadow to warm off-white upper surface. No dark outlines. Cloud edges are crisp stair-step pixels, interior opaque. Muted gentle aerial atmosphere, no droplets or ground."
+    },
+    {
+      "name": "cloud_round",
+      "prompt": "Use case: stylized-concept. Asset type: ONE editable PNG game sprite for a top-down 2D pixel-art dark fantasy game. Genuine TRANSPARENT background with alpha; no background scene, no floor tile, no text, no grid, no checkerboard, no watermark. The whole object fits centered with transparent margin. Crisp chunky square pixels, limited muted palette, flat color clusters, no gradients, blur or photographic textures. Design as a small low-resolution sprite enlarged using nearest-neighbor, easy to reduce to game size. Subject: one compact asymmetric rounded cloud bank viewed directly from overhead. Width about 1.4 times height. Design for 80x60 pixels, broad soft-shaped lobes built of crisp stepped square pixel clusters. Only four pale colors, blue-grey shadow and off-white highlights. No dark outline. Interior opaque, generous actual transparent surrounding area. No rain or ground."
+    },
+    {
+      "name": "ground_moss",
+      "prompt": "Use case: stylized-concept. Asset type: ONE seamless tileable PNG ground texture for a top-down 2D pixel-art dark fantasy game. Orthographic overhead view of quiet muted mossy grass, no objects, no trees, no rocks, no text, no grid, no border, no lighting gradient. OPAQUE square image, flat low-contrast forest floor in 4 desaturated moss and olive greens. Dominant medium-dark green with sparse tiny subtle grass clusters; do not make noise dense. Design as a 64x64 pixel tile enlarged nearest-neighbor with crisp square pixels. Seamless wrapping on all four edges. No perspective, photographic texture, blur, dithering or shadows. This is a background under HUD and must remain visually quiet."
+    }
+  ]
+}

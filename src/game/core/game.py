@@ -6,18 +6,22 @@ solo coordina el juego y deja el trabajo a las pantallas.
 """
 
 import pygame
+import secrets
+from game.systems.run_random import content_random
 
 from game import config
 from game.core.screen_manager import ScreenManager
-from game.entities.player import Player
+from game.core.run_state import RunState
 from game.config import RUN_PATTERN
 from game.systems.localization import Localization
+from game.visuals.tower_background import TowerBackground
 
 from game.screens.menu_screen import MenuScreen
 from game.screens.play_screen import PlayScreen
 from game.screens.shop_screen import ShopScreen
 from game.screens.boss_screen import BossScreen
 from game.screens.game_over_screen import GameOverScreen
+from game.screens.ascent_screen import AscentScreen
 
 
 
@@ -32,22 +36,15 @@ class Game:
         self.is_fullscreen = False
         self.apply_display_mode()
         pygame.display.set_caption(config.WINDOW_TITLE)
-        self.localization = Localization("en")
+        self.localization = Localization()
+        self.run_state = RunState()
 
         self.clock = pygame.time.Clock()
         self.running = True
         self.screen_manager = ScreenManager()
 
-        self.run_step = 0
-        self.current_step = self.run_step
-        self.current_step_index = 0
-        self.run_cycles = 0
-        self.max_cycles = 3
-        self.player = Player()
-        self.mode = "menu"
-
-        self.room_level = 1
-        self.enemy_level = 1
+        self.tower_background = None
+        self.previous_room_layer = None
 
         # La primera pantalla sera el menu.
         self.screen_manager.set_screen(MenuScreen(self))
@@ -57,71 +54,76 @@ class Game:
 
 
     def go_to_next_run_screen(self):
-        self.current_step_index = self.run_step
-        step = RUN_PATTERN[self.current_step_index]
-
-        self.run_step += 1
-        if self.run_step >= len(RUN_PATTERN):
-            self.run_step = 0
-
-        self.current_step = step
+        step = self.run_state.advance(RUN_PATTERN)
 
         if step == "normal":
-            self.screen_manager.set_screen(PlayScreen(self))
+            self.enter_combat_screen(PlayScreen(self))
         elif step == "shop":
-            self.screen_manager.set_screen(ShopScreen(self))
+            with self.content_random('shop'):
+                self.screen_manager.set_screen(ShopScreen(self))
         elif step == "boss":
-            self.screen_manager.set_screen(BossScreen(self))
+            self.enter_combat_screen(BossScreen(self))
         else:
             raise ValueError(f"Paso desconocido: {step}")
 
 
-    def finish_current_screen(self):
-        if self.mode == "boss_test":
+    def enter_combat_screen(self, screen):
+        self.run_state.tower_history.record(screen)
+        screen.room.structure = self.run_state.tower_history.underlay(screen)
+        previous = self.previous_room_layer
+        self.previous_room_layer = None
+        if previous is not None:
+            screen = AscentScreen(self, previous, screen)
+        self.screen_manager.set_screen(screen)
+
+    def finish_current_screen(self, source):
+        if source is not self.screen_manager.current_screen or getattr(source, '_transitioned', False):
+            return
+        if hasattr(source, 'room_flow') and source.room_flow.result.phase != 'leaving':
+            return
+        if not hasattr(source, 'room_flow') and not isinstance(source, ShopScreen):
+            return
+        source._transitioned = True
+        if self.run_state.mode == "boss_test":
             self.screen_manager.set_screen(MenuScreen(self))
             return
 
-        if self.current_step == "normal":
-            self.room_level += 1
+        # Save only the cleared room, before the shop changes the shared player.
+        # Keep it across the shop so the ascent always starts on the previous floor.
+        if self.run_state.current_step in ("normal", "boss"):
+            current = self.screen_manager.current_screen
+            self.run_state.tower_history.complete(current)
+            self.previous_room_layer = current.capture_room_layer(include_structure=False)
 
-        if self.current_step in ("normal", "boss"):
-            self.enemy_level += 1
-
-        if self.is_last_step_of_loop():
-            self.run_cycles += 1
-
-            if self.run_cycles >= self.max_cycles:
-                self.screen_manager.set_screen(GameOverScreen(self))
-                return
-
-            self.room_level = 1
-
+        if self.run_state.finish_step(RUN_PATTERN):
+            self.screen_manager.set_screen(GameOverScreen(self))
+            return
         self.go_to_next_run_screen()
 
-    def is_last_step_of_loop(self):
-        for index in range(len(RUN_PATTERN) - 1, -1, -1):
-            if RUN_PATTERN[index] != "shop":
-                return self.current_step_index == index
+    def content_random(self, section):
+        return content_random(self.run_state.run_seed, f'{section}:{self.run_state.run_cycles}:{self.run_state.current_step_index}')
 
-        return False
-
-    def start_new_run(self):
-        self.mode = "normal_run"
-        self.run_step = 0
-        self.current_step = None
-        self.current_step_index = 0
-        self.run_cycles = 0
-        self.room_level = 1
-        self.enemy_level = 1
-        self.player = Player()
-
+    def start_new_run(self, seed=None):
+        chosen_seed = str(seed).strip() if seed is not None and str(seed).strip() else str(secrets.randbits(32))
+        self.run_state = RunState(run_seed=chosen_seed, mode="normal_run")
+        self.previous_room_layer = None
+        self.tower_background = None
         self.go_to_next_run_screen()
 
     def start_boss_test(self, boss_type="basic"):
-        self.player = Player()
-        self.mode = "boss_test"
-
+        self.run_state = RunState(mode="boss_test", current_step="boss")
+        self.previous_room_layer = None
+        self.tower_background = None
         self.screen_manager.set_screen(BossScreen(self, boss_type=boss_type))
+
+    def get_tower_floor_index(self):
+        return self.run_state.floor_index(RUN_PATTERN)
+
+    def get_tower_background(self):
+        if self.tower_background is None:
+            floors_per_loop = sum(step in ("normal", "boss") for step in RUN_PATTERN)
+            self.tower_background = TowerBackground(floors_per_loop * self.run_state.max_cycles)
+        return self.tower_background
 
 
     def run(self):

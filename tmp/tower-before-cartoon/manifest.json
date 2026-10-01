@@ -1,0 +1,50 @@
+{
+  "ground_moss": {
+    "file": "ground_moss.png",
+    "width": 64,
+    "height": 64,
+    "source": "source/ground_moss.png"
+  },
+  "tree_oak": {
+    "file": "tree_oak.png",
+    "width": 56,
+    "height": 56,
+    "source": "source/tree_oak.png"
+  },
+  "tree_pine": {
+    "file": "tree_pine.png",
+    "width": 48,
+    "height": 48,
+    "source": "source/tree_pine.png"
+  },
+  "tree_birch": {
+    "file": "tree_birch.png",
+    "width": 44,
+    "height": 44,
+    "source": "source/tree_birch.png"
+  },
+  "rock_large": {
+    "file": "rock_large.png",
+    "width": 24,
+    "height": 20,
+    "source": "source/rock_large.png"
+  },
+  "rock_small": {
+    "file": "rock_small.png",
+    "width": 18,
+    "height": 16,
+    "source": "source/rock_small.png"
+  },
+  "cloud_wide": {
+    "file": "cloud_wide.png",
+    "width": 112,
+    "height": 56,
+    "source": "source/cloud_wide.png"
+  },
+  "cloud_round": {
+    "file": "cloud_round.png",
+    "width": 80,
+    "height": 60,
+    "source": "source/cloud_round.png"
+  }
+}

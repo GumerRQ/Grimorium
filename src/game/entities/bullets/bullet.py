@@ -7,6 +7,7 @@ from game import config
 from game.entities.entity import Entity
 from game.visuals.voltaic_rock import draw_voltaic_rock
 from game.visuals.effect_images import effect_image
+from game.rooms.destructible import sweep_rect
 
 
 
@@ -54,7 +55,12 @@ class Bullet(Entity):
         self.visual_timer = 0
         self.fragment_style = fragment_style
 
-    def update(self, dt, blockers):
+    def update(self, dt, blockers, room=None):
+        if self.destroyed:
+            return
+        if room is not None:
+            self.update_room_collision(dt, blockers, room)
+            return
         old_x = self.x
         old_y = self.y
 
@@ -103,6 +109,41 @@ class Bullet(Entity):
             self.destroyed = True
         
         self.visual_timer += dt
+
+    def update_room_collision(self, dt, blockers, room):
+        # Pick the first obstacle along the whole segment, including fast shots.
+        distance = math.hypot(self.vel_x, self.vel_y)*dt
+        remaining = max(0, self.max_distance-self.distance_traveled)
+        fraction = min(1, remaining/distance) if distance else 1
+        dx, dy = self.vel_x*dt*fraction, self.vel_y*dt*fraction
+        closest = None
+        candidates = [(rect, None) for rect in blockers]
+        candidates.extend((prop.rect, prop) for prop in room.destructibles)
+        for rect, prop in candidates:
+            contact = sweep_rect(self.x, self.y, dx, dy, rect, self.radius)
+            if contact is not None and (closest is None or contact[0] < closest[0]):
+                closest = (contact[0], contact[1], prop)
+        travel = closest[0] if closest is not None else 1
+        self.x += dx*travel
+        self.y += dy*travel
+        self.distance_traveled += math.hypot(dx, dy)*travel
+        self.visual_timer += dt
+        if closest is not None:
+            _, normal, prop = closest
+            self.impact_x, self.impact_y = self.x, self.y
+            self.destroyed = True
+            if prop is not None:
+                room.hit_object(prop)
+            else:
+                self.hit_wall = True
+                direction = pygame.Vector2(self.vel_x, self.vel_y)
+                if normal != (0, 0):
+                    direction = direction.reflect(pygame.Vector2(normal))
+                else:
+                    direction *= -1
+                self.fragment_direction = direction.normalize() if direction.length_squared() else direction
+        elif self.distance_traveled >= self.max_distance:
+            self.destroyed = True
 
     def is_offscreen(self):
         world_width = self.world_width if self.world_width is not None else config.SCREEN_WIDTH

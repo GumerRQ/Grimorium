@@ -1,3 +1,4 @@
+from game.systems.impacts import Impact, apply_impact
 import pygame
 
 
@@ -48,7 +49,7 @@ def apply_fire_on_ice_combo(bullet, enemy, hit_damage):
 
     combo_data = bullet.effect_data["combos"]["fire_ice"]
     multiplier = combo_data["damage_multiplier"]
-    enemy.take_damage(hit_damage * multiplier)
+    apply_impact(enemy, Impact(hit_damage * multiplier, kind='combo', source=bullet))
 
     return create_thermal_fragments(bullet, enemy, combo_data)
 

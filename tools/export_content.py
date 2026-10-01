@@ -128,7 +128,14 @@ def main():
     except (ContentError,FileNotFoundError) as exc: print(f"ERROR DE CONTENIDO:\n{exc}",file=sys.stderr); return 1
     if args.check: print(f"OK: {len(items)} objetos, {len(effects)} efectos y {len(requirements)} requisitos"); return 0
     for name,value in (("items",items),("effects",effects),("requirements",requirements)): write_json(ROOT/"data/game"/f"{name}.json",value)
-    for language,value in translations.items(): write_json(ROOT/"data/lang"/f"{language}.json",value)
+    for language, value in translations.items():
+        path = ROOT / "data/lang" / f"{language}.json"
+        # UI strings are maintained in JSON; the workbook owns item text
+        # and tooltip hints. Do not discard the menu when exporting items.
+        if path.exists():
+            existing_ui = json.loads(path.read_text(encoding="utf-8")).get("ui", {})
+            value["ui"] = {**existing_ui, **value.get("ui", {})}
+        write_json(path, value)
     print(f"Exportado correctamente desde {args.workbook}"); return 0
 
 if __name__=="__main__": raise SystemExit(main())

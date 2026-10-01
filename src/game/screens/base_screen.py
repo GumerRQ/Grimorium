@@ -9,6 +9,7 @@ import pygame
 
 
 class BaseScreen:
+    CAN_PAUSE = False
     VIRTUAL_WIDTH = 320
     VIRTUAL_HEIGHT = 180
 
@@ -20,6 +21,12 @@ class BaseScreen:
 
     def get_virtual_size(self):
         return self.VIRTUAL_WIDTH, self.VIRTUAL_HEIGHT
+
+    def screen_to_virtual(self, pos):
+        width, height = self.game.screen.get_size()
+        scale = max(1, min(width // self.VIRTUAL_WIDTH, height // self.VIRTUAL_HEIGHT))
+        return ((pos[0] - (width - self.VIRTUAL_WIDTH * scale) // 2) / scale,
+                (pos[1] - (height - self.VIRTUAL_HEIGHT * scale) // 2) / scale)
 
     def on_enter(self):
         """Se llama al entrar en esta pantalla."""

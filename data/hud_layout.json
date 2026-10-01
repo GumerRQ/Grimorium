@@ -1,0 +1,250 @@
+{
+  "version": 3,
+  "items": {
+    "stats_panel": {
+      "rect": [
+        6,
+        64,
+        73,
+        167
+      ],
+      "align": "center",
+      "deleted": false,
+      "visible": true,
+      "kind": "image",
+      "asset": "images/hud/panels/stats_panel.png",
+      "members": [
+        "time",
+        "coins",
+        "damage",
+        "speed",
+        "fire_rate",
+        "shoot_distance",
+        "body_damage"
+      ],
+      "name": ""
+    },
+    "tower_panel": {
+      "rect": [
+        564,
+        58,
+        63,
+        275
+      ],
+      "align": "center",
+      "deleted": false,
+      "visible": true,
+      "kind": "image",
+      "asset": "images/hud/panels/tower_panel.png",
+      "members": [
+        "tower_title",
+        "floor_label",
+        "floor_value",
+        "loop_label",
+        "loop_value"
+      ],
+      "name": ""
+    },
+    "health_bar": {
+      "rect": [
+        95,
+        18,
+        135,
+        4
+      ],
+      "align": "left",
+      "deleted": false,
+      "visible": true
+    },
+    "health_text": {
+      "rect": [
+        133,
+        12,
+        57,
+        20
+      ],
+      "align": "center",
+      "deleted": true,
+      "visible": true
+    },
+    "time": {
+      "rect": [
+        3,
+        76,
+        96,
+        16
+      ],
+      "align": "center",
+      "deleted": false,
+      "visible": true
+    },
+    "coins": {
+      "rect": [
+        17,
+        96,
+        68,
+        16
+      ],
+      "align": "center",
+      "deleted": false,
+      "visible": true
+    },
+    "damage": {
+      "rect": [
+        31,
+        120,
+        40,
+        16
+      ],
+      "align": "center",
+      "deleted": false,
+      "visible": true
+    },
+    "speed": {
+      "rect": [
+        31,
+        141,
+        40,
+        16
+      ],
+      "align": "center",
+      "deleted": false,
+      "visible": true
+    },
+    "fire_rate": {
+      "rect": [
+        31,
+        162,
+        40,
+        16
+      ],
+      "align": "center",
+      "deleted": false,
+      "visible": true
+    },
+    "shoot_distance": {
+      "rect": [
+        31,
+        183,
+        40,
+        16
+      ],
+      "align": "center",
+      "deleted": false,
+      "visible": true
+    },
+    "body_damage": {
+      "rect": [
+        31,
+        204,
+        40,
+        16
+      ],
+      "align": "center",
+      "deleted": false,
+      "visible": true
+    },
+    "tower_view": {
+      "rect": [
+        568,
+        90,
+        55,
+        167
+      ],
+      "align": "center",
+      "deleted": false,
+      "visible": true
+    },
+    "tower_title": {
+      "rect": [
+        568,
+        67,
+        55,
+        19
+      ],
+      "align": "center",
+      "deleted": false,
+      "visible": true
+    },
+    "floor_label": {
+      "rect": [
+        568,
+        263,
+        55,
+        16
+      ],
+      "align": "center",
+      "deleted": false,
+      "visible": true
+    },
+    "floor_value": {
+      "rect": [
+        568,
+        277,
+        55,
+        16
+      ],
+      "align": "center",
+      "deleted": false,
+      "visible": true
+    },
+    "loop_label": {
+      "rect": [
+        568,
+        294,
+        55,
+        16
+      ],
+      "align": "center",
+      "deleted": false,
+      "visible": true
+    },
+    "loop_value": {
+      "rect": [
+        568,
+        308,
+        55,
+        16
+      ],
+      "align": "center",
+      "deleted": false,
+      "visible": true
+    },
+    "image_health_panel": {
+      "rect": [
+        81,
+        9,
+        161,
+        27
+      ],
+      "align": "center",
+      "deleted": true,
+      "visible": true,
+      "kind": "image",
+      "asset": "images/hud/panels/health_panel.png",
+      "members": [
+        "health_bar"
+      ],
+      "name": "health_panel",
+      "fit_to": "health_bar"
+    },
+    "image_health_panel_2": {
+      "rect": [
+        82,
+        2,
+        161,
+        35
+      ],
+      "align": "center",
+      "deleted": false,
+      "visible": true,
+      "kind": "image",
+      "asset": "images/hud/panels/health_panel.png",
+      "members": [
+        "health_bar"
+      ],
+      "name": "health_panel",
+      "fit_to": "health_bar"
+    }
+  }
+}

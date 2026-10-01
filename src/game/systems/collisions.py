@@ -4,7 +4,9 @@ Separarlas aqui te ayuda a no mezclar estas reglas
 con el codigo de dibujo o de menus.
 """
 
+from game.systems.impacts import Impact, apply_impact
 import math
+from game.systems.collision_shapes import damage_bounds, overlap_area, circle_overlaps_entity
 from game.systems.effect_handlers import ELEMENT_EFFECTS
 from game.systems.element_combos import ELEMENTAL_COMBOS
 
@@ -12,10 +14,32 @@ from game.systems.poison_cloud import PoisonCloud
 
 
 def circles_collide(a, b):
+    # Keep the public entry point for bullets/effects; enemies now expose boxes.
+    a_box, b_box = hasattr(a, "get_hitbox_bounds"), hasattr(b, "get_hitbox_bounds")
+    if a_box and b_box:
+        return overlap_area(damage_bounds(a), damage_bounds(b)) > 0
+    if a_box or b_box:
+        box, circle = (a, b) if a_box else (b, a)
+        return circle_overlaps_entity(circle.x, circle.y, circle.radius, box)
     distance = math.hypot(a.x - b.x, a.y - b.y)
     return distance <= a.radius + b.radius
 
 def separate_circles(a, b, blockers):
+    if hasattr(a, "get_hitbox_bounds") or hasattr(b, "get_hitbox_bounds"):
+        # Resolve contact with the same body boxes used to detect the hit.
+        ab, bb = damage_bounds(a), damage_bounds(b)
+        if overlap_area(ab, bb) <= 0:
+            return
+        pushes = ((bb[0] - ab[2], 0), (bb[2] - ab[0], 0),
+                  (0, bb[1] - ab[3]), (0, bb[3] - ab[1]))
+        dx, dy = min(pushes, key=lambda p: abs(p[0]) + abs(p[1]))
+        for entity, sign in ((a, 1), (b, -1)):
+            old_x, old_y = entity.x, entity.y
+            entity.x += sign * dx / 2
+            entity.y += sign * dy / 2
+            if entity.collides_with_rects(blockers):
+                entity.x, entity.y = old_x, old_y
+        return
     dx = b.x - a.x
     dy = b.y - a.y
     distance = math.hypot(dx, dy)
@@ -122,13 +146,7 @@ def resolve_player_bullets_vs_enemies(bullets, enemies, blockers, damage_multipl
 
         for enemy in enemies_left[:]:
             if circles_collide(bullet, enemy):
-                enemy.take_damage(damage)
-
-                knockback_strength = 83
-                length = math.hypot(bullet.vel_x, bullet.vel_y)
-
-                if length > 0:
-                    enemy.apply_knockback(bullet.vel_x / length, bullet.vel_y / length, knockback_strength)
+                apply_impact(enemy, Impact(damage, source=bullet, knockback=(bullet.vel_x, bullet.vel_y), strength=83))
 
                 for element in bullet.elements:
                     combo_applied, combo_effect = try_apply_combo(
@@ -176,7 +194,7 @@ def resolve_enemy_bullets_vs_player(enemy_bullets, player):
 
     for bullet in enemy_bullets:
         if circles_collide(bullet, player):
-            player.take_damage(bullet.damage)
+            apply_impact(player, Impact(bullet.damage, source=bullet))
         else:
             bullets_left.append(bullet)
 
@@ -192,10 +210,10 @@ def resolve_enemies_touch_player(enemies, player, blockers):
             enemies_left.append(enemy)
             continue
         if circles_collide(enemy, player):
-            player.take_damage(enemy.body_damage)
+            apply_impact(player, Impact(enemy.body_damage, kind='contact', source=enemy))
 
             if enemy.damage > 0:
-                enemy.take_damage(player.body_damage)
+                apply_impact(enemy, Impact(player.body_damage, kind='contact', source=player))
 
             separate_circles(player, enemy, blockers)
 

@@ -12,6 +12,9 @@ from game.visuals.animated_visual import AnimatedVisual
 
 
 class LeapingBoss(BasicBoss):
+    SPRITE_SIZE = 96
+    DIRECTION_ROWS = {"down": 0, "right": 1, "left": 2, "up": 3}
+
     def __init__(self, level=1):
         super().__init__(level)
         self.speed = self.base_speed = 38
@@ -24,16 +27,43 @@ class LeapingBoss(BasicBoss):
         self.jump_start = self.target.copy()
         self.pending_shots = []
         self.visual = AnimatedVisual(
-            image_folder="enemies/golem", image_name="golem.bmp",
-            frame_cols=1, frame_rows=1, scale_x=96, scale_y=96,
-            use_alpha=False, colorkey=(84, 206, 76),
+            image_folder="enemies/golem", image_name="golem_animated.png",
+            frame_cols=4, frame_rows=4,
+            scale_x=self.SPRITE_SIZE, scale_y=self.SPRITE_SIZE,
+            use_alpha=True,
             initial_state="idle", initial_facing="down",
-            animations={"idle": {"row": 0, "frames": [0], "speed": .25, "loop": True}},
+            animations={
+                f"{state}_{facing}": {
+                    "row": row, "frames": frames, "speed": .3, "loop": True,
+                }
+                for facing, row in self.DIRECTION_ROWS.items()
+                for state, frames in (("idle", [0]), ("walk", [0, 1, 2, 3]))
+            },
         )
 
     def enter(self, state):
         self.state = state
         self.state_time = 0.0
+        # Stop the walk cycle while charging, airborne or recovering. Keep the
+        # same frame dimensions so rendering cannot change the collision bounds.
+        self.visual.set_state("idle", reset=True)
+        self._idle_time = 0.0
+        self._pending_facing = None
+        self._facing_time = 0.0
+
+    def face_point(self, x, y):
+        dx, dy = x - self.x, y - self.y
+        if abs(dx) + abs(dy) < 1e-9:
+            return
+        if abs(dx) > abs(dy):
+            facing = "right" if dx > 0 else "left"
+        else:
+            facing = "down" if dy > 0 else "up"
+        self.visual.set_facing(facing)
+
+    def update_animation(self, dt):
+        if self.status_effects["ice"]["ice_timer"] <= 0:
+            self.visual.update(dt)
 
     def apply_knockback(self, dir_x, dir_y, strength):
         if self.state != "jump":
@@ -54,6 +84,7 @@ class LeapingBoss(BasicBoss):
                 break
             self.target = candidate
         self.x, self.y = start
+        self.face_point(self.target.x, self.target.y)
 
     def volley(self, player, room):
         direction = pygame.Vector2(player.x - self.x, player.y - self.y)
@@ -83,6 +114,7 @@ class LeapingBoss(BasicBoss):
             if self.state_time >= 1.1:
                 self.attack_index += 1
                 if self.attack_index % 3 == 0:
+                    self.face_point(player.x, player.y)
                     self.enter("spit_warning")
                 else:
                     self.lock_jump_target(player, blockers)
@@ -126,13 +158,6 @@ class LeapingBoss(BasicBoss):
                                (round(self.target.x), round(self.target.y)), self.radius, 1)
 
     def draw(self, surface):
-        if self.state in ("jump_warning", "spit_warning"):
-            pulse = math.sin(self.state_time * 18)
-            self.visual.set_size(100 + round(pulse * 2), 90)
-        elif self.state == "recover" and self.state_time < .2:
-            self.visual.set_size(104, 86)
-        else:
-            self.visual.set_size(96, 96)
         Enemy.draw(self, surface, -round(self.jump_height))
         if self.state == "spit_warning":
             pygame.draw.circle(surface, (245, 143, 82),

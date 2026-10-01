@@ -29,11 +29,12 @@ PLUS_BORDER_SWEEP_COLORS = [
 ]
 
 class ShopScreen(BaseScreen):
+    CAN_PAUSE = True
     VIRTUAL_WIDTH = 320
     VIRTUAL_HEIGHT = 180
     def __init__(self, game):
         super().__init__(game)
-        self.player = self.game.player
+        self.player = self.game.run_state.player
 
         self.background = pygame.image.load(asset_path("images", "shop.bmp")).convert()
         self.background_original_size = self.background.get_size()
@@ -61,6 +62,7 @@ class ShopScreen(BaseScreen):
         self.title_font = create_font(pixel_scale=self.pixel_scale)
         self.info_font = create_font(pixel_scale=self.pixel_scale)
         self.tooltip_font = self.info_font
+        self.unlabeled_background = self.background.copy()
         self.tooltip_icon_w = 5
         self.tooltip_icon_h = 6
         self.tooltip_icons = self.load_tooltip_icons()
@@ -157,13 +159,8 @@ class ShopScreen(BaseScreen):
             asset_path("images", "ui", "power_levels_book.png")
         ).convert_alpha()
 
-        self.power_levels_book = pygame.transform.scale(
-            power_levels_book_original,
-            (
-                self.power_levels_book_size[0] * self.pixel_scale,
-                self.power_levels_book_size[1] * self.pixel_scale,
-            ),
-        )
+        self.unlabeled_book = power_levels_book_original.copy()
+        self.refresh_language()
 
         # Libro centrado horizontalmente.
         self.power_levels_book_x = 141
@@ -171,7 +168,7 @@ class ShopScreen(BaseScreen):
         # Abierto: 112 + 68 = 180.
         self.power_levels_book_open_y = 112
 
-        # Cerrado: quedan visibles 20 píxeles.
+        # Cerrado: quedan visibles 20 pÃ­xeles.
         self.power_levels_book_closed_y = 155
 
         self.power_levels_book_y = float(
@@ -182,7 +179,7 @@ class ShopScreen(BaseScreen):
 
 
         self.power_level_positions = [
-            # Página izquierda.
+            # PÃ¡gina izquierda.
             (15, 28),
             (44, 28),
             (15, 40),
@@ -190,7 +187,7 @@ class ShopScreen(BaseScreen):
             (15, 52),
             (44, 52),
 
-            # Página derecha.
+            # PÃ¡gina derecha.
             (78, 28),
             (107, 28),
             (78, 40),
@@ -201,6 +198,50 @@ class ShopScreen(BaseScreen):
 
         self.power_level_hitboxes = []
 
+        self.keyboard_mode = True
+        self.focus_index = 0
+        self.level_book_pinned = False
+        self.notice = ""
+        self.notice_time = 0.0
+        self.levels_button = pygame.Rect(6, 151, 65, 10)
+        self.leave_button = pygame.Rect(6, 163, 65, 10)
+        self.focus_age = 0.0
+        self.focus_signature = None
+
+
+    def on_enter(self):
+        if self.art_language != self.game.localization.language:
+            self.refresh_language()
+
+    def refresh_language(self):
+        self.art_language = self.game.localization.language
+        self.background = self.unlabeled_background.copy()
+        # Replace lettering on the loaded copy, keeping the editable art intact.
+        for key, x, width, sample_x in (("powers", 53, 36, 50),
+                                       ("potions", 140, 38, 137),
+                                       ("books", 234, 30, 230)):
+            scale = self.pixel_scale
+            color = self.background.get_at((sample_x * scale, 22 * scale))
+            rect = pygame.Rect(x * scale, 18 * scale, width * scale, 9 * scale)
+            self.background.fill(color, rect)
+            label = self.title_font.render(self.game.localization.text(f"ui.shop.{key}"),
+                                           True, (30, 24, 17))
+            self.background.blit(label, label.get_rect(center=rect.center))
+        power_levels_book_original = self.unlabeled_book.copy()
+        page_color = power_levels_book_original.get_at((35, 30))
+        power_levels_book_original.fill(page_color, (14, 8, 55, 16))
+        label = create_font(pixel_scale=1).render(
+            self.game.localization.text("ui.shop.spells"), True, (82, 53, 32))
+        power_levels_book_original.blit(label, label.get_rect(center=(41, 16)))
+
+        self.power_levels_book = pygame.transform.scale(
+            power_levels_book_original,
+            (
+                self.power_levels_book_size[0] * self.pixel_scale,
+                self.power_levels_book_size[1] * self.pixel_scale,
+            ),
+        )
+
 
     def load_shop_assets(self, item_data, colorkey, size):
         loaded_items = []
@@ -208,9 +249,9 @@ class ShopScreen(BaseScreen):
         for item_id, data in item_data.items():
             image_path = asset_path(*data["asset"].split("/"))
 
-            image = pygame.image.load(str(image_path)).convert()
+            image = pygame.image.load(str(image_path)).convert_alpha()
             image.set_colorkey(colorkey)
-            image = pygame.transform.scale(image, size)
+            image = pygame.transform.scale(image, size).convert_alpha()
 
             loaded_items.append({
                 "id": item_id,
@@ -268,12 +309,15 @@ class ShopScreen(BaseScreen):
 
         for slot, item_data in zip(slots_to_use, items_to_show):
             rect = self.build_layout_rect(slot, (32, 32))
+            image = item_data["image"]
+            visible = image.get_bounding_rect(min_alpha=1)
 
             shop_items.append({
                 "id": item_data["id"],
                 "image": item_data["image"],
                 "price": price_data[item_data["id"]]["price"],
                 "rect": rect,
+                "hit_rect": visible.move(rect.topleft).inflate(4, 4),
             })
 
         return shop_items
@@ -315,13 +359,11 @@ class ShopScreen(BaseScreen):
     
 
     def buy_item(self, item, items, apply_function):
-        if self.player.coins < item["price"]:
-            return
-
-        apply_function(self.player, item["id"])
-        self.player.coins -= item["price"]
-        items.remove(item)
-
+        result = self.game.run_state.purchase(item, items, apply_function)
+        if result == 'poor':
+            self.notice, self.notice_time = "ui.shop.poor", 2.0
+        elif result == 'bought':
+            self.notice, self.notice_time = "ui.shop.bought", 1.2
 
     def buy_potion(self, potion):
         self.buy_item(potion, self.potions_in_shop, apply_potion)
@@ -335,15 +377,6 @@ class ShopScreen(BaseScreen):
         self.buy_item(power, self.powers_in_shop, apply_power)
 
     
-    def try_buy_clicked_item(self, mouse_pos, items, buy_function):
-        for item in items[:]:
-            if item["rect"].collidepoint(mouse_pos):
-                buy_function(item)
-                return True
-
-        return False
-    
-
     def get_owned_power_elements(self):
         owned = set(self.player.base_bullet_elements)
         owned.update(self.player.extra_bullet_element.keys())
@@ -399,10 +432,19 @@ class ShopScreen(BaseScreen):
         return self.power_levels_book.get_rect(topleft=(x, y))
     
     def update(self, dt):
+        self.notice_time = max(0, self.notice_time - dt)
+        if self.keyboard_mode:
+            kind, item, _ = self.keyboard_targets()[self.focus_index]
+            signature = (self.focus_index, kind, item["id"] if item else None)
+            if signature != self.focus_signature:
+                self.focus_signature = signature
+                self.focus_age = 0.0
+            else:
+                self.focus_age += dt
         mouse_pos = self.screen_to_virtual(pygame.mouse.get_pos())
         book_rect = self.get_power_levels_book_rect()
 
-        if book_rect.collidepoint(mouse_pos):
+        if self.level_book_pinned or (not self.keyboard_mode and book_rect.collidepoint(mouse_pos)):
             target_y = self.power_levels_book_open_y
         else:
             target_y = self.power_levels_book_closed_y
@@ -419,39 +461,98 @@ class ShopScreen(BaseScreen):
         if abs(self.power_levels_book_y - target_y) < 0.1:
             self.power_levels_book_y = float(target_y)
 
+    def keyboard_targets(self):
+        targets = []
+        for kind, items in (("potion", self.potions_in_shop),
+                            ("power", self.powers_in_shop), ("book", self.books_in_shop)):
+            targets.extend((kind, item, item["hit_rect"]) for item in items)
+        targets.sort(key=lambda target: (target[2].centery, target[2].centerx))
+        targets.append(("levels", None, self.levels_button))
+        if self.level_book_pinned:
+            book = self.get_power_levels_book_rect()
+            for level_id, (x, y) in zip(self.get_visible_power_level_ids(), self.power_level_positions):
+                rect = self.level_book_images[f"lvl_{level_id}"].get_rect(
+                    topleft=(book.x + x * self.pixel_scale, book.y + y * self.pixel_scale))
+                targets.append(("level", {"id": level_id, "rect": rect}, rect))
+        targets.append(("leave", None, self.leave_button))
+        self.focus_index = min(self.focus_index, len(targets) - 1)
+        return targets
+
+    def move_focus(self, dx, dy):
+        targets = self.keyboard_targets()
+        origin = pygame.Vector2(targets[self.focus_index][2].center)
+        candidates = []
+        for index, (_, _, rect) in enumerate(targets):
+            delta = pygame.Vector2(rect.center) - origin
+            forward = delta.x * dx + delta.y * dy
+            if forward > 1:
+                cross = abs(delta.x * dy - delta.y * dx)
+                candidates.append((forward + cross * 2, index))
+        if candidates:
+            self.focus_index = min(candidates)[1]
+
+    def perform_action(self, kind, item=None):
+        if self.game.screen_manager.current_screen is not self or getattr(self, '_transitioned', False):
+            return
+        self.focus_age = 0.0
+        if kind == "leave":
+            self.game.finish_current_screen(self)
+        elif kind == "levels":
+            self.level_book_pinned = not self.level_book_pinned
+        elif kind in ("potion", "power", "book"):
+            {"potion": self.buy_potion, "power": self.buy_power, "book": self.buy_book}[kind](item)
+            self.keyboard_targets()
+        # A level entry is an informational tooltip, not an equipment slot.
+
+    def activate_focus(self):
+        kind, item, _ = self.keyboard_targets()[self.focus_index]
+        self.perform_action(kind, item)
+
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_RETURN:
-                self.game.go_to_next_run_screen()
+            self.keyboard_mode = True
+            directions = {pygame.K_LEFT: (-1, 0), pygame.K_a: (-1, 0),
+                          pygame.K_RIGHT: (1, 0), pygame.K_d: (1, 0),
+                          pygame.K_UP: (0, -1), pygame.K_w: (0, -1),
+                          pygame.K_DOWN: (0, 1), pygame.K_s: (0, 1)}
+            if event.key in directions:
+                self.move_focus(*directions[event.key])
+            elif event.key == pygame.K_TAB:
+                count = len(self.keyboard_targets())
+                self.focus_index = (self.focus_index + (-1 if event.mod & pygame.KMOD_SHIFT else 1)) % count
+            elif event.key in (pygame.K_e, pygame.K_SPACE):
+                if not getattr(event, "repeat", False):
+                    if self.keyboard_targets()[self.focus_index][0] != "leave":
+                        self.activate_focus()
+            elif event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
+                if not getattr(event, "repeat", False):
+                    self.perform_action("leave")
+            elif event.key == pygame.K_i:
+                if getattr(event, "repeat", False):
+                    return
+                self.perform_action("levels")
+                targets = self.keyboard_targets()
+                self.focus_index = next((i for i, t in enumerate(targets) if t[0] == "level"),
+                                        next(i for i, t in enumerate(targets) if t[0] == "levels"))
+            return
+
+        if event.type == pygame.MOUSEMOTION and event.rel != (0, 0):
+            self.keyboard_mode = False
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            self.keyboard_mode = False
             mouse_pos = self.screen_to_virtual(event.pos)
-
-            if self.try_buy_clicked_item(mouse_pos, self.potions_in_shop, self.buy_potion):
-                return
-
-            if self.try_buy_clicked_item(mouse_pos, self.powers_in_shop, self.buy_power):
-                return
-
-            if self.try_buy_clicked_item(mouse_pos, self.books_in_shop, self.buy_book):
-                return
+            for kind, item, rect in reversed(self.keyboard_targets()):
+                if rect.collidepoint(mouse_pos):
+                    self.perform_action(kind, item)
+                    return
 
     def screen_to_virtual(self, pos):
-        mx, my = pos
-        return (
-            (mx - self.game.render_offset_x) // self.game.render_scale,
-            (my - self.game.render_offset_y) // self.game.render_scale,
-        )
+        return super().screen_to_virtual(pos)
 
     def draw_shop_items(self, surface):
-        for potion in self.potions_in_shop:
-            surface.blit(potion["image"], potion["rect"])
-
-        for book in self.books_in_shop:
-            surface.blit(book["image"], book["rect"])
-
-        for power in self.powers_in_shop:
-            surface.blit(power["image"], power["rect"])
+        for item in self.potions_in_shop + self.books_in_shop + self.powers_in_shop:
+            surface.blit(item["image"], item["rect"])
 
     
     def draw_prices(self, surface):
@@ -464,17 +565,17 @@ class ShopScreen(BaseScreen):
    
     def get_level_texts(self):
         return {
-            "fire": f"lv:{self.player.element_stats['fire']['level']}",
-            "ice": f"lv:{self.player.element_stats['ice']['level']}",
-            "electric": f"lv:{self.player.element_stats['electric']['level']}",
-            "poison": f"lv:{self.player.element_stats['poison']['level']}",
+            "fire": self.game.localization.text("ui.shop.level") + f"{self.player.element_stats['fire']['level']}",
+            "ice": self.game.localization.text("ui.shop.level") + f"{self.player.element_stats['ice']['level']}",
+            "electric": self.game.localization.text("ui.shop.level") + f"{self.player.element_stats['electric']['level']}",
+            "poison": self.game.localization.text("ui.shop.level") + f"{self.player.element_stats['poison']['level']}",
 
-            "fire_ice": f"lv:{self.player.combo_stats['fire_ice']['level']}",
-            "fire_electric": f"lv:{self.player.combo_stats['fire_electric']['level']}",
-            "ice_electric": f"lv:{self.player.combo_stats['ice_electric']['level']}",
-            "fire_poison": f"lv:{self.player.combo_stats['fire_poison']['level']}",
-            "ice_poison": f"lv:{self.player.combo_stats['ice_poison']['level']}",
-            "electric_poison": f"lv:{self.player.combo_stats['electric_poison']['level']}",
+            "fire_ice": self.game.localization.text("ui.shop.level") + f"{self.player.combo_stats['fire_ice']['level']}",
+            "fire_electric": self.game.localization.text("ui.shop.level") + f"{self.player.combo_stats['fire_electric']['level']}",
+            "ice_electric": self.game.localization.text("ui.shop.level") + f"{self.player.combo_stats['ice_electric']['level']}",
+            "fire_poison": self.game.localization.text("ui.shop.level") + f"{self.player.combo_stats['fire_poison']['level']}",
+            "ice_poison": self.game.localization.text("ui.shop.level") + f"{self.player.combo_stats['ice_poison']['level']}",
+            "electric_poison": self.game.localization.text("ui.shop.level") + f"{self.player.combo_stats['electric_poison']['level']}",
         }
     
 
@@ -519,7 +620,7 @@ class ShopScreen(BaseScreen):
 
         level_texts = self.get_level_texts()
 
-        # Después se dibujan los poderes sobre sus páginas.
+        # DespuÃ©s se dibujan los poderes sobre sus pÃ¡ginas.
         visible_level_ids = self.get_visible_power_level_ids()
 
         self.power_level_hitboxes = []
@@ -672,7 +773,37 @@ class ShopScreen(BaseScreen):
         mouse_pos = self.screen_to_virtual(pygame.mouse.get_pos())
         item_type, item = self.get_hovered_shop_item(mouse_pos)
 
-        if item is not None:
+        focus_rect = self.keyboard_targets()[self.focus_index][2] if self.keyboard_mode else None
+        for rect, label in ((self.levels_button, self.game.localization.text("ui.shop.levels")), (self.leave_button, self.game.localization.text("ui.shop.leave"))):
+            active = rect == focus_rect or (not self.keyboard_mode and rect.collidepoint(mouse_pos))
+            color = (244, 239, 216) if active else (173, 184, 183)
+            text = self.info_font.render(label, True, color)
+            shadow = self.info_font.render(label, True, (15, 21, 25))
+            surface.blit(shadow, shadow.get_rect(center=(rect.centerx + 1, rect.centery + 1)))
+            surface.blit(text, text.get_rect(center=rect.center))
+            if active:
+                pygame.draw.line(surface, color, rect.bottomleft, (rect.right, rect.bottom), 1)
+        if self.keyboard_mode:
+            item_type, item, rect = self.keyboard_targets()[self.focus_index]
+            if item is not None:
+                # Tiny corner marks keep focus readable without framing the shelf.
+                marker = rect
+                for x, y, dx, dy in ((marker.left, marker.top, 1, 1),
+                                      (marker.right - 1, marker.top, -1, 1),
+                                      (marker.left, marker.bottom - 1, 1, -1),
+                                      (marker.right - 1, marker.bottom - 1, -1, -1)):
+                    pygame.draw.lines(surface, (226, 230, 217), False,
+                                      [(x + 2 * dx, y), (x, y), (x, y + 2 * dy)], 1)
+            mouse_pos = rect.midright
+
+        hint = self.game.localization.text(self.notice) if self.notice_time > 0 else (self.game.localization.text("ui.shop.hint") if self.keyboard_mode else "")
+        if hint:
+            text = self.info_font.render(hint, True, (220, 224, 212))
+            shadow = self.info_font.render(hint, True, (15, 21, 25))
+            surface.blit(shadow, shadow.get_rect(midbottom=(self.VIRTUAL_WIDTH // 2 + 1, 180)))
+            surface.blit(text, text.get_rect(midbottom=(self.VIRTUAL_WIDTH // 2, 179)))
+
+        if item is not None and (not self.keyboard_mode or self.focus_age >= .35):
             title, body_lines, hint = self.get_tooltip_content(item_type, item)
             style = self.get_tooltip_style(item_type, item)
             self.draw_tooltip(surface, title, body_lines, hint, mouse_pos, style, item_type, item["id"])
@@ -709,7 +840,7 @@ class ShopScreen(BaseScreen):
 
         for item_type, items in shop_groups:
             for item in items:
-                if item["rect"].collidepoint(mouse_pos):
+                if item["hit_rect"].collidepoint(mouse_pos):
                     return item_type, item
 
         return None, None
@@ -768,7 +899,7 @@ class ShopScreen(BaseScreen):
             data["overload_total_duration"] = (
                 f"{1 / drain_per_second:.2f}"
                 if drain_per_second > 0
-                else "∞"
+                else "âˆž"
             )
             data["tick_damage"] = round(
                 stats["tick_damage"],
@@ -910,12 +1041,12 @@ class ShopScreen(BaseScreen):
                 format_data["overload_total_duration"] = (
                     f"{new_duration:.2f}"
                     if new_duration != float("inf")
-                    else "∞"
+                    else "âˆž"
                 )
                 format_data["overload_duration_added"] = (
                     f"{new_duration - current_duration:.2f}"
                     if new_duration != float("inf")
-                    else "∞"
+                    else "âˆž"
                 )
                 format_data["tick_damage"] = round(
                     format_data["tick_damage"],
