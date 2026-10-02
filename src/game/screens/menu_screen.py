@@ -51,6 +51,9 @@ class MenuScreen(BaseScreen):
                  self.toggle_fullscreen, self.game.localization.text("ui.menu.display_desc")),
                 (self.game.localization.text("ui.menu.fps") + (self.game.localization.text("ui.menu.yes") if getattr(self.game, 'show_fps', True) else self.game.localization.text("ui.menu.no")),
                  self.toggle_fps, self.game.localization.text("ui.menu.fps_desc")),
+                (self.game.localization.text("ui.menu.intro"),
+                 lambda: self.game.start_intro(return_screen=self),
+                 self.game.localization.text("ui.menu.intro_desc")),
                 (self.game.localization.text("ui.menu.back"), self.back_from_options, self.game.localization.text('ui.pause.back_desc' if self.return_screen is not None else 'ui.menu.back_desc')),
             ]
         elif page == 'practice':

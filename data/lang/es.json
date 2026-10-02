@@ -431,6 +431,11 @@
     }
   },
   "ui": {
+    "intro": {
+      "skip": "Enter / Espacio / Esc: omitir",
+      "mute": "M: silenciar",
+      "unmute": "M: activar sonido"
+    },
     "tooltip": {
       "hold_shift": "Mantén Shift para detalles",
       "release_shift": "Suelta Shift para resumen"
@@ -455,6 +460,8 @@
       "no": "No",
       "display_desc": "Alterna ventana y pantalla\ncompleta. Atajo: F12.",
       "fps_desc": "Muestra u oculta el contador\nde FPS y tiempo por fotograma.",
+      "intro": "Ver intro",
+      "intro_desc": "Repite el robo del grimorio.\nAl terminar vuelves aquí.",
       "back_desc": "Vuelve al menú principal.",
       "golem": "Golem saltador",
       "basic": "Jefe básico",

@@ -412,6 +412,11 @@
     }
   },
   "ui": {
+    "intro": {
+      "skip": "Enter / Space / Esc: skip",
+      "mute": "M: mute",
+      "unmute": "M: enable sound"
+    },
     "tooltip": {
       "hold_shift": "Hold Shift for details",
       "release_shift": "Release Shift for summary"
@@ -436,6 +441,8 @@
       "no": "No",
       "display_desc": "Switch between windowed\nand fullscreen. Shortcut: F12.",
       "fps_desc": "Show or hide FPS\nand frame time.",
+      "intro": "Watch intro",
+      "intro_desc": "Replay the theft of the grimoire.\nReturn here when it ends.",
       "back_desc": "Return to the main menu.",
       "golem": "Leaping golem",
       "basic": "Basic boss",

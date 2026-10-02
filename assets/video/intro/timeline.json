@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "title": "GRIMORIUM",
+  "fps": 24,
+  "beats": [
+    {"id": "reading", "end": 4.4, "label": "Lectura tranquila", "source": [1], "action": "El mago avanza distraído con el libro y el bastón balanceándose."},
+    {"id": "shadow", "end": 5.4, "label": "Algo pasa por encima", "source": [2], "action": "Una sombra cruza el camino; el mago todavía no se entera."},
+    {"id": "snatch", "end": 5.72, "label": "El robo", "source": [3, 4], "action": "Pasada rápida, tirón del libro y golpe de sorpresa breve."},
+    {"id": "reaction", "end": 8.6, "label": "Tarda en darse cuenta", "source": [1, 4], "action": "Se queda leyendo el vacío, se sobresalta y sale detrás del ladrón."},
+    {"id": "tower", "end": 11.6, "label": "Hacia la torre", "source": [5], "action": "El cuervo pequeño se pierde en la ventana; el mago lo sigue con la mirada."},
+    {"id": "chase", "end": 17.5, "label": "La persecución", "source": [5, 6, 7], "action": "Corre con rebotes, desaparece detrás de la colina y sube por el camino."},
+    {"id": "arrival", "end": 18.8, "label": "Entrada", "source": [7], "action": "Se recompone un instante y entra en la torre."},
+    {"id": "title", "end": 20.0, "label": "Grimorium", "source": [], "action": "Cierre y paso al menú."}
+  ]
+}

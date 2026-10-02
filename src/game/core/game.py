@@ -30,6 +30,19 @@ class Game:
 
     def __init__(self):
         pygame.init()
+        # Keyboard/mouse only. Pygame 2.6.1 can raise KeyError inside
+        # event.get() for an unmapped joystick removal (pygame issue #3954).
+        # Block before quitting: set_blocked also removes queued device events.
+        pygame.event.set_blocked((
+            pygame.JOYAXISMOTION, pygame.JOYBALLMOTION, pygame.JOYHATMOTION,
+            pygame.JOYBUTTONDOWN, pygame.JOYBUTTONUP,
+            pygame.JOYDEVICEADDED, pygame.JOYDEVICEREMOVED,
+            pygame.CONTROLLERAXISMOTION,
+            pygame.CONTROLLERBUTTONDOWN, pygame.CONTROLLERBUTTONUP,
+            pygame.CONTROLLERDEVICEADDED, pygame.CONTROLLERDEVICEREMOVED,
+            pygame.CONTROLLERDEVICEREMAPPED,
+        ))
+        pygame.joystick.quit()
         pygame.font.init()
 
         self.screen = None
@@ -46,11 +59,15 @@ class Game:
         self.tower_background = None
         self.previous_room_layer = None
 
-        # La primera pantalla sera el menu.
-        self.screen_manager.set_screen(MenuScreen(self))
-
         self.debug_font = pygame.font.Font(None, 24)
         self.show_fps = True       
+
+        self.start_intro()
+
+
+    def start_intro(self, return_screen=None):
+        from game.screens.intro_screen import IntroScreen
+        self.screen_manager.set_screen(IntroScreen(self, return_screen=return_screen))
 
 
     def go_to_next_run_screen(self):
@@ -157,7 +174,7 @@ class Game:
                 (self.render_offset_x, self.render_offset_y)
             )
 
-            if self.show_fps:
+            if self.show_fps and getattr(current_screen, "SHOW_FPS", True):
                 fps = self.clock.get_fps()
                 ms = 1000 / fps if fps > 0 else 0
                 fps_text = self.debug_font.render(f"FPS: {fps:.1f}  MS: {ms:.2f}", True, (255, 255, 0))
